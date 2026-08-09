@@ -65,8 +65,8 @@ sections = [
     "4. Toll & Aftermath 📉🏚️",
     "5. Lessons & Official Sources 📚",
     "6. Fun Facts & Trivia 🧠",
-    "7. Summary & Key Takeaways 📌",
-    "8. Test Your Knowledge (Quiz) 📝"
+    "7. Test Your Knowledge (Quiz) 📝",
+    "8. Summary & Key Takeaways 📌"
 ]
 selection = st.sidebar.radio("Go to slide:", sections)
 
@@ -306,25 +306,8 @@ elif selection == "6. Fun Facts & Trivia 🧠":
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- SLIDE 7: SUMMARY & KEY TAKEAWAYS ---
-elif selection == "7. Summary & Key Takeaways 📌":
-    st.markdown('<p class="main-title">Summary & Key Takeaways</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">A quick executive recap of the 2011 Tohoku Earthquake & Tsunami</p>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("""
-    ### 🔑 Core Summary Points
-    
-    1. **The Event:** On March 11, 2011, a **9.0 magnitude** megaquake struck off the coast of Sendai, Japan, resulting from the subduction of the Pacific Plate beneath the North American Plate.
-    2. **The Main Hazard:** While the earthquake's engineering standards protected buildings from collapsing, the **40-meter tsunami wave** triggered by seafloor uplift caused the vast majority of the ~19,000 fatalities.
-    3. **The Cascading Disaster:** Flooding of the backup generators at the **Fukushima Daiichi Nuclear Power Plant** caused a Level 7 nuclear meltdown, massive long-term displacement, and international fallout.
-    4. **Economic & Global Impact:** Costing roughly **$235 billion**, it became the costliest natural disaster in history, sending supply chain shocks across global electronics and automotive industries.
-    5. **Resilience & Adaptation:** Despite the unprecedented devastation, Japan's advanced early warning systems saved thousands of lives. The country responded with aggressive rebuilding frameworks, much higher sea walls, and global regulatory overhauls for nuclear safety.
-    """)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# --- SLIDE 8: QUIZ ---
-elif selection == "8. Test Your Knowledge (Quiz) 📝":
+# --- SLIDE 7: QUIZ ---
+elif selection == "7. Test Your Knowledge (Quiz) 📝":
     st.markdown('<p class="main-title">Interactive Quiz</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Test what you learned about the 2011 Tohoku Earthquake & Tsunami</p>', unsafe_allow_html=True)
     
@@ -359,6 +342,23 @@ elif selection == "8. Test Your Knowledge (Quiz) 📝":
                 st.info("👍 Good job! Review the slides to brush up on what you missed.")
             else:
                 st.warning("⚠️ Keep studying! Check out the overview and science slides to learn more.")
+
+# --- SLIDE 8: SUMMARY & KEY TAKEAWAYS ---
+elif selection == "8. Summary & Key Takeaways 📌":
+    st.markdown('<p class="main-title">Summary & Key Takeaways</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">A quick executive recap of the 2011 Tohoku Earthquake & Tsunami</p>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("""
+    ### 🔑 Core Summary Points
+    
+    1. **The Event:** On March 11, 2011, a **9.0 magnitude** megaquake struck off the coast of Sendai, Japan, resulting from the subduction of the Pacific Plate beneath the North American Plate.
+    2. **The Main Hazard:** While the earthquake's engineering standards protected buildings from collapsing, the **40-meter tsunami wave** triggered by seafloor uplift caused the vast majority of the ~19,000 fatalities.
+    3. **The Cascading Disaster:** Flooding of the backup generators at the **Fukushima Daiichi Nuclear Power Plant** caused a Level 7 nuclear meltdown, massive long-term displacement, and international fallout.
+    4. **Economic & Global Impact:** Costing roughly **$235 billion**, it became the costliest natural disaster in history, sending supply chain shocks across global electronics and automotive industries.
+    5. **Resilience & Adaptation:** Despite the unprecedented devastation, Japan's advanced early warning systems saved thousands of lives. The country responded with aggressive rebuilding frameworks, much higher sea walls, and global regulatory overhauls for nuclear safety.
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR) ---
