@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & LEFT SIDEBAR-HIDDEN STACKED POPOVERS ---
+# --- CUSTOM CSS FOR AESTHETICS & VERTICALLY STACKED LEFT-SIDEBAR POPOVERS ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,10 +15,10 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* Global styling for all hidden left-edge popovers */
+    /* Global styling for all hidden left-edge popovers behind the sidebar */
     div[data-testid="stPopover"] {
         position: fixed !important;
-        left: 10px !important;
+        left: 15px !important;
         z-index: 10 !important;
         opacity: 0.3;
         transition: opacity 0.3s ease;
@@ -28,10 +28,10 @@ st.markdown("""
         opacity: 1;
     }
 
-    /* Distinct vertical stacking heights so they don't overlap */
-    div[data-testid="stVerticalBlock"] div[data-testid="stPopover"]:nth-of-type(1) { top: 80px !important; }
-    div[data-testid="stVerticalBlock"] div[data-testid="stPopover"]:nth-of-type(2) { top: 110px !important; }
-    div[data-testid="stVerticalBlock"] div[data-testid="stPopover"]:nth-of-type(3) { top: 140px !important; }
+    /* Explicit vertical stacking for each popover so they don't overlap */
+    div[data-testid="stPopover"]:nth-of-type(1) { top: 80px !important; }
+    div[data-testid="stPopover"]:nth-of-type(2) { top: 120px !important; }
+    div[data-testid="stPopover"]:nth-of-type(3) { top: 160px !important; }
 
     /* Target the button itself inside the popover to make it an exact 20x20 square */
     div[data-testid="stPopover"] button {
@@ -262,56 +262,56 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGG POPOVERS (GROUPED IN A CONTAINER FOR CLEAN DOM STACKING) ---
-with st.container():
-    # 1. TOP POPOVER (Hitler Art School Joke)
-    egg_top = st.popover("")
-    with egg_top:
-        st.write("Authorized Access Only")
-        code_top = st.text_input("Enter code:", type="password", key="egg_code_top")
-        if code_top == "100%":
-            st.success("Access Granted.")
-            st.markdown("<h4 style='text-align:center;'>Hitler's Art School Application (1907)</h4>", unsafe_allow_html=True)
-            df_art = pd.DataFrame({
-                "Decision": ["Rejected", "Also Rejected, but in German", "Told to try Architecture instead"],
-                "Percent": [70, 29, 1]
-            })
-            fig_art = px.pie(df_art, values="Percent", names="Decision", hole=0.3, color_discrete_sequence=px.colors.sequential.Reds_r)
-            fig_art.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
-            st.plotly_chart(fig_art, use_container_width=True)
-        elif code_top:
-            st.error("Invalid Code.")
+# --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR, DISTINCTLY STACKED) ---
 
-    # 2. MIDDLE POPOVER (Historically Nuked Countries - Flag Joke)
-    egg_mid = st.popover("")
-    with egg_mid:
-        st.write("Authorized Access Only")
-        code_mid = st.text_input("Enter code:", type="password", key="egg_code_mid")
-        if code_mid == "100%":
-            st.success("Access Granted.")
-            st.markdown("<h4 style='text-align:center;'>Historically Nuked Countries</h4>", unsafe_allow_html=True)
-            df_nuked = pd.DataFrame({"Country": ["Japan"], "Percentage": [100]})
-            fig_egg = px.pie(df_nuked, values="Percentage", names="Country", color_discrete_sequence=["#BC002D"]) 
-            fig_egg.update_layout(paper_bgcolor="white", plot_bgcolor="white", showlegend=False, margin=dict(l=0, r=0, t=0, b=0), height=200, width=200)
-            fig_egg.update_traces(textinfo='none', hovertemplate='<b>%{label}</b><br>100%<extra></extra>')
-            st.plotly_chart(fig_egg, use_container_width=True)
-        elif code_mid:
-            st.error("Invalid Code.")
+# 1. TOP POPOVER (Hitler Art School Joke)
+egg_top = st.popover("")
+with egg_top:
+    st.write("Authorized Access Only")
+    code_top = st.text_input("Enter code:", type="password", key="egg_code_top")
+    if code_top == "100%":
+        st.success("Access Granted.")
+        st.markdown("<h4 style='text-align:center;'>Hitler's Art School Application (1907)</h4>", unsafe_allow_html=True)
+        df_art = pd.DataFrame({
+            "Decision": ["Rejected", "Also Rejected, but in German", "Told to try Architecture instead"],
+            "Percent": [70, 29, 1]
+        })
+        fig_art = px.pie(df_art, values="Percent", names="Decision", hole=0.3, color_discrete_sequence=px.colors.sequential.Reds_r)
+        fig_art.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
+        st.plotly_chart(fig_art, use_container_width=True)
+    elif code_top:
+        st.error("Invalid Code.")
 
-    # 3. BOTTOM POPOVER (Invading Russia in Winter Joke)
-    egg_bot = st.popover("")
-    with egg_bot:
-        st.write("Authorized Access Only")
-        code_bot = st.text_input("Enter code:", type="password", key="egg_code_bot")
-        if code_bot == "100%":
-            st.success("Access Granted.")
-            st.markdown("<h4 style='text-align:center;'>Success Rate: Invading Russia During Winter</h4>", unsafe_allow_html=True)
-            df_inv = pd.DataFrame({
-                "Dictator/General": ["Napoleon (1812)", "Hitler (1941)"],
-                "Success Rate (%)": [0, 0]
-            })
-            fig_inv = px.bar(df_inv, x="Dictator/General", y="Success Rate (%)", range_y=[0, 100], color="Dictator/General", color_discrete_sequence=["#3B82F6", "#EF4444"])
-            fig_inv.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
-            st.plotly_chart(fig_inv, use_container_width=True)
-        elif code_bot:
-            st.error("Invalid Code.")
+# 2. MIDDLE POPOVER (Historically Nuked Countries - Flag Joke)
+egg_mid = st.popover("")
+with egg_mid:
+    st.write("Authorized Access Only")
+    code_mid = st.text_input("Enter code:", type="password", key="egg_code_mid")
+    if code_mid == "100%":
+        st.success("Access Granted.")
+        st.markdown("<h4 style='text-align:center;'>Historically Nuked Countries</h4>", unsafe_allow_html=True)
+        df_nuked = pd.DataFrame({"Country": ["Japan"], "Percentage": [100]})
+        fig_egg = px.pie(df_nuked, values="Percentage", names="Country", color_discrete_sequence=["#BC002D"]) 
+        fig_egg.update_layout(paper_bgcolor="white", plot_bgcolor="white", showlegend=False, margin=dict(l=0, r=0, t=0, b=0), height=200, width=200)
+        fig_egg.update_traces(textinfo='none', hovertemplate='<b>%{label}</b><br>100%<extra></extra>')
+        st.plotly_chart(fig_egg, use_container_width=True)
+    elif code_mid:
+        st.error("Invalid Code.")
+
+# 3. BOTTOM POPOVER (Invading Russia in Winter Joke)
+egg_bot = st.popover("")
+with egg_bot:
+    st.write("Authorized Access Only")
+    code_bot = st.text_input("Enter code:", type="password", key="egg_code_bot")
+    if code_bot == "100%":
+        st.success("Access Granted.")
+        st.markdown("<h4 style='text-align:center;'>Success Rate: Invading Russia During Winter</h4>", unsafe_allow_html=True)
+        df_inv = pd.DataFrame({
+            "Dictator/General": ["Napoleon (1812)", "Hitler (1941)"],
+            "Success Rate (%)": [0, 0]
+        })
+        fig_inv = px.bar(df_inv, x="Dictator/General", y="Success Rate (%)", range_y=[0, 100], color="Dictator/General", color_discrete_sequence=["#3B82F6", "#EF4444"])
+        fig_inv.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
+        st.plotly_chart(fig_inv, use_container_width=True)
+    elif code_bot:
+        st.error("Invalid Code.")
