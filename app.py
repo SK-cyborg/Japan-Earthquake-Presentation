@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS ---
+# --- CUSTOM CSS FOR AESTHETICS & FLOATING BUTTON ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -14,6 +14,14 @@ st.markdown("""
     .card {background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #1E3A8A; margin-bottom: 20px;}
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
+    
+    /* CSS to pin the easter egg popover to the bottom right corner */
+    div[data-testid="stPopover"] {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -56,7 +64,6 @@ if selection == "1. Overview & Map 🌍":
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        # Interactive Map showing Epicenter, Sendai, and Fukushima
         df_map = pd.DataFrame({
             "Location": ["Epicenter (Mag 9.0)", "Fukushima Daiichi Plant", "Sendai City (Devastated Area)"],
             "lat": [38.322, 37.421, 38.268],
@@ -182,7 +189,6 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### Verify the Facts (Official Links)")
         
-        # Using standard Markdown syntax for clickable links instead of HTML
         st.markdown("""
         To read the official scientific summaries and economic reports, visit the authoritative sources below:
         
@@ -193,3 +199,36 @@ elif selection == "5. Lessons & Official Sources 📚":
         """)
         
         st.markdown('</div>', unsafe_allow_html=True)
+
+
+# --- EASTER EGG: BOTTOM RIGHT CORNER ---
+# Using st.popover to create a tiny interactive button
+egg_popover = st.popover("⚙️") 
+with egg_popover:
+    st.write("Authorized Access Only")
+    code = st.text_input("Enter code:", type="password", key="egg_code")
+    
+    if code == "100%":
+        st.success("Access Granted.")
+        st.markdown("<h4 style='text-align:center;'>Historically Nuked Countries</h4>", unsafe_allow_html=True)
+        
+        # Creating a pie chart that looks exactly like the Japanese Flag
+        df_nuked = pd.DataFrame({"Country": ["Japan"], "Percentage": [100]})
+        
+        # #BC002D is the official crimson red of the Japanese Flag
+        fig_egg = px.pie(df_nuked, values="Percentage", names="Country", color_discrete_sequence=["#BC002D"]) 
+        
+        fig_egg.update_layout(
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            showlegend=False,
+            margin=dict(l=0, r=0, t=0, b=0),
+            height=200, width=200
+        )
+        
+        # Removes the hover text and lines to make it a pure circle
+        fig_egg.update_traces(textinfo='none', hovertemplate='<b>%{label}</b><br>100%<extra></extra>')
+        
+        st.plotly_chart(fig_egg, use_container_width=True)
+    elif code:
+        st.error("Invalid Code.")
