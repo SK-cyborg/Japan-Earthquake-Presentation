@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & TINY FLOATING BUTTON ---
+# --- CUSTOM CSS FOR AESTHETICS & 20x20 SQUARE BUTTON ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,17 +15,35 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* CSS to pin and shrink the easter egg popover to a tiny button */
+    /* Target the button itself inside the popover to make it a 20x20 square */
+    div[data-testid="stPopover"] button {
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        min-height: 20px !important;
+        padding: 0px !important;
+        border-radius: 0px !important; /* Forces it to be a sharp square */
+        background-color: #9CA3AF !important; /* Subtle grey color */
+        border: none !important;
+    }
+    
+    /* Hide any text/icons inside the button to keep it a pure square */
+    div[data-testid="stPopover"] button p, div[data-testid="stPopover"] button div {
+        display: none !important;
+    }
+    
+    /* Pin the popover container above the manage app button */
     div[data-testid="stPopover"] {
         position: fixed;
-        bottom: 80px; /* Increased from 10px to sit ABOVE the Streamlit 'Manage App' button */
-        right: 10px;
-        z-index: 1000;
-        transform: scale(0.6); /* Makes the button much smaller */
-        opacity: 0.5; /* Makes it slightly see-through until clicked */
+        bottom: 75px; /* Above the 'Manage App' button */
+        right: 15px;  /* Pushed to the right edge */
+        z-index: 9999;
+        opacity: 0.3; /* Semi-transparent until hovered */
+        transition: opacity 0.3s ease;
     }
+    
     div[data-testid="stPopover"]:hover {
-        opacity: 1; /* Fully visible on hover */
+        opacity: 1; /* Fully visible when hovered */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -39,9 +57,8 @@ sections = [
     "1. Overview & Map 🌍",
     "2. The Science: Why it Happened 💥",
     "3. The Tsunami & Fukushima 🌊",
-    "4. Human & Economic Toll 📉",
-    "5. The Aftermath 🏚️",
-    "6. Lessons & Official Sources 📚"
+    "4. Toll & Aftermath 📉🏚️",
+    "5. Lessons & Official Sources 📚"
 ]
 selection = st.sidebar.radio("Go to slide:", sections)
 
@@ -148,41 +165,38 @@ elif selection == "3. The Tsunami & Fukushima 🌊":
         
         st.markdown('<div class="quote-box">"A major factor that contributed to the accident was the widespread assumption in Japan that its nuclear power plants were so safe that an accident of this magnitude was simply unthinkable." <br><br>— <b>International Atomic Energy Agency (IAEA) Report</b></div>', unsafe_allow_html=True)
 
-# --- SLIDE 4: HUMAN & ECONOMIC TOLL ---
-elif selection == "4. Human & Economic Toll 📉":
-    st.markdown('<p class="main-title">The Immediate Toll</p>', unsafe_allow_html=True)
+# --- SLIDE 4: TOLL & AFTERMATH (MERGED) ---
+elif selection == "4. Toll & Aftermath 📉🏚️":
+    st.markdown('<p class="main-title">Toll & Long-Term Aftermath</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Analyzing the immediate devastation and the decade-long legacy</p>', unsafe_allow_html=True)
     
-    col1, col2 = st.columns(2)
+    # 4 Tabs merging the old slides 4 and 5
+    tab1, tab2, tab3, tab4 = st.tabs(["📉 Immediate Toll", "☢️ Environmental Legacy", "👥 Societal & Human Impact", "🏭 Global Economy"])
     
-    with col1:
-        st.markdown("### Human Casualties")
-        st.info("The vast majority of casualties were caused by drowning from the tsunami, not falling buildings, showcasing the effectiveness of Japan's earthquake-resistant engineering.")
-        df_cas = pd.DataFrame({
-            "Status": ["Confirmed Deaths", "Missing", "Injured"],
-            "Count": [19759, 2553, 6242]
-        })
-        fig = px.pie(df_cas, values="Count", names="Status", hole=0.4, title="Casualty Breakdown (2021 Official Figures)", color_discrete_sequence=["#EF4444", "#F59E0B", "#3B82F6"])
-        st.plotly_chart(fig, use_container_width=True)
-        
-    with col2:
-        st.markdown("### The Most Expensive Disaster in History")
-        st.markdown('<div class="quote-box">"The massive quake and tsunami of March 11 could cost Japan\'s economy up to $US235 billion... or 4.0 per cent of output." <br><br>— <b>World Bank (2011 Report)</b></div>', unsafe_allow_html=True)
-        
-        df_econ = pd.DataFrame({
-            "Disaster Event": ["1995 Kobe Quake", "2005 Hurricane Katrina", "2011 Tohoku Quake & Tsunami"],
-            "Estimated Cost (Billion USD)": [100, 125, 235]
-        })
-        fig2 = px.bar(df_econ, x="Disaster Event", y="Estimated Cost (Billion USD)", title="Economic Cost Comparison", color="Estimated Cost (Billion USD)", color_continuous_scale="Reds")
-        st.plotly_chart(fig2, use_container_width=True)
-
-# --- SLIDE 5: THE AFTERMATH ---
-elif selection == "5. The Aftermath 🏚️":
-    st.markdown('<p class="main-title">The Long-Term Aftermath</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">A decade later, the scars of 2011 remain visible globally and locally.</p>', unsafe_allow_html=True)
-
-    tab1, tab2, tab3 = st.tabs(["☢️ Environmental Legacy", "👥 Societal & Human Impact", "🏭 Global Supply Chains"])
-
     with tab1:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### Human Casualties")
+            st.info("The vast majority of casualties were caused by drowning from the tsunami, not falling buildings, showcasing the effectiveness of Japan's earthquake-resistant engineering.")
+            df_cas = pd.DataFrame({
+                "Status": ["Confirmed Deaths", "Missing", "Injured"],
+                "Count": [19759, 2553, 6242]
+            })
+            fig = px.pie(df_cas, values="Count", names="Status", hole=0.4, title="Casualty Breakdown (2021 Official Figures)", color_discrete_sequence=["#EF4444", "#F59E0B", "#3B82F6"])
+            st.plotly_chart(fig, use_container_width=True)
+            
+        with col2:
+            st.markdown("### The Most Expensive Disaster in History")
+            st.markdown('<div class="quote-box">"The massive quake and tsunami of March 11 could cost Japan\'s economy up to $US235 billion... or 4.0 per cent of output." <br><br>— <b>World Bank (2011 Report)</b></div>', unsafe_allow_html=True)
+            
+            df_econ = pd.DataFrame({
+                "Disaster Event": ["1995 Kobe Quake", "2005 Hurricane Katrina", "2011 Tohoku Quake & Tsunami"],
+                "Estimated Cost (Billion USD)": [100, 125, 235]
+            })
+            fig2 = px.bar(df_econ, x="Disaster Event", y="Estimated Cost (Billion USD)", title="Economic Cost Comparison", color="Estimated Cost (Billion USD)", color_continuous_scale="Reds")
+            st.plotly_chart(fig2, use_container_width=True)
+
+    with tab2:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### The Fukushima Clean-up")
         st.markdown("""
@@ -192,7 +206,7 @@ elif selection == "5. The Aftermath 🏚️":
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with tab2:
+    with tab3:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### The Invisible Toll: Displacement & Trauma")
         st.markdown("""
@@ -202,7 +216,7 @@ elif selection == "5. The Aftermath 🏚️":
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with tab3:
+    with tab4:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### The Energy Shift & Supply Chain Shock")
         st.markdown("""
@@ -212,8 +226,8 @@ elif selection == "5. The Aftermath 🏚️":
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- SLIDE 6: LESSONS & SOURCES ---
-elif selection == "6. Lessons & Official Sources 📚":
+# --- SLIDE 5: LESSONS & SOURCES ---
+elif selection == "5. Lessons & Official Sources 📚":
     st.markdown('<p class="main-title">Lessons Learned & Official Sources</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -244,9 +258,9 @@ elif selection == "6. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGG: BOTTOM RIGHT CORNER ---
-# Using st.popover to create a tiny interactive button
-egg_popover = st.popover("⚙️") 
+# --- EASTER EGG: BOTTOM RIGHT CORNER (SQUARE) ---
+# Passed an empty string so no text forces its way into the button layout
+egg_popover = st.popover("") 
 with egg_popover:
     st.write("Authorized Access Only")
     code = st.text_input("Enter code:", type="password", key="egg_code")
