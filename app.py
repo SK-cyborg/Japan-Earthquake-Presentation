@@ -13,7 +13,6 @@ st.markdown("""
     .sub-title {font-size: 24px; color: #3B82F6; margin-bottom: 30px; text-align: center;}
     .card {background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #1E3A8A; margin-bottom: 20px;}
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
-    .source-link {font-size: 14px; color: #2563EB; font-weight: bold;}
     h3 {color: #1E40AF;}
     </style>
 """, unsafe_allow_html=True)
@@ -182,12 +181,15 @@ elif selection == "5. Lessons & Official Sources 📚":
     with col2:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### Verify the Facts (Official Links)")
+        
+        # Using standard Markdown syntax for clickable links instead of HTML
         st.markdown("""
         To read the official scientific summaries and economic reports, visit the authoritative sources below:
         
-        * 🌍 <a class="source-link" href="https://www.usgs.gov/centers/pcmsc/news/japan-lashed-powerful-earthquake-devastating-tsunami" target="_blank">US Geological Survey (USGS): Event Summary</a>
-        * ☢️ <a class="source-link" href="https://www.iaea.org/topics/response/fukushima-daiichi-nuclear-accident" target="_blank">IAEA: Fukushima Daiichi Accident Report</a>
-        * 💰 <a class="source-link" href="https://www.worldbank.org/en/news/feature/2011/03/21/japan-earthquake" target="_blank">World Bank: Economic Impact Estimate</a>
-        * 🌧️ <a class="source-link" href="https://www.jma.go.jp/jma/en/2011_Earthquake/2011_Earthquake.html" target="_blank">Japan Meteorological Agency (JMA) Portal</a>
+        * 🌍 [US Geological Survey (USGS): Event Summary](https://www.usgs.gov/centers/pcmsc/news/japan-lashed-powerful-earthquake-devastating-tsunami)
+        * ☢️ [IAEA: Fukushima Daiichi Accident Report](https://www.iaea.org/topics/response/fukushima-daiichi-nuclear-accident)
+        * 💰 [World Bank: Economic Impact Estimate](https://www.worldbank.org/en/news/feature/2011/03/21/japan-earthquake)
+        * 🌧️ [Japan Meteorological Agency (JMA) Portal](https://www.jma.go.jp/jma/en/2011_Earthquake/2011_Earthquake.html)
         """)
+        
         st.markdown('</div>', unsafe_allow_html=True)
