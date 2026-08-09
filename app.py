@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & DISTINCT STACKED SQUARES ---
+# --- CUSTOM CSS FOR AESTHETICS & HOVER-REVEAL 20x20 SQUARES ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -45,10 +45,10 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Stealth opacity behavior */
+    /* Stealth hover-reveal behavior: nearly invisible (0.02) until hovered */
     .fixed-box div[data-testid="stPopover"] {
-        opacity: 0.1;
-        transition: opacity 0.3s ease;
+        opacity: 0.02;
+        transition: opacity 0.2s ease;
     }
     
     .fixed-box div[data-testid="stPopover"]:hover {
@@ -266,7 +266,7 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGGS: STACKED HIDDEN SQUARES ---
+# --- EASTER EGGS: STACKED HIDDEN SQUARES (HOVER TO REVEAL) ---
 
 # 1. TOP BUTTON (Hitler Art School Joke)
 st.markdown('<div class="fixed-box tier-top">', unsafe_allow_html=True)
