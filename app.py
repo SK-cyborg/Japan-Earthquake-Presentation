@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & VERTICALLY STACKED LEFT-SIDEBAR POPOVERS ---
+# --- CUSTOM CSS FOR AESTHETICS & FOOLPROOF STACKED POPOVERS ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,23 +15,23 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* Global styling for all hidden left-edge popovers behind the sidebar */
-    div[data-testid="stPopover"] {
+    /* Pin the popover containers behind the left sidebar with stealth hover behavior */
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {
         position: fixed !important;
-        left: 15px !important;
-        z-index: 10 !important;
+        left: 10px !important;
+        z-index: 9999 !important;
         opacity: 0.3;
         transition: opacity 0.3s ease;
     }
     
-    div[data-testid="stPopover"]:hover {
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {
         opacity: 1;
     }
 
-    /* Explicit vertical stacking for each popover so they don't overlap */
-    div[data-testid="stPopover"]:nth-of-type(1) { top: 80px !important; }
-    div[data-testid="stPopover"]:nth-of-type(2) { top: 120px !important; }
-    div[data-testid="stPopover"]:nth-of-type(3) { top: 160px !important; }
+    /* Distinct vertical stacking for each sequential popover container */
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) { top: 80px !important; }
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) { top: 110px !important; }
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) { top: 140px !important; }
 
     /* Target the button itself inside the popover to make it an exact 20x20 square */
     div[data-testid="stPopover"] button {
@@ -45,7 +45,7 @@ st.markdown("""
         border: none !important;
     }
     
-    /* Hide any text/icons inside the button to keep it a pure square */
+    /* Hide text/icons inside the button to keep it a pure square */
     div[data-testid="stPopover"] button p, 
     div[data-testid="stPopover"] button div {
         display: none !important;
@@ -262,7 +262,7 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR, DISTINCTLY STACKED) ---
+# --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR) ---
 
 # 1. TOP POPOVER (Hitler Art School Joke)
 egg_top = st.popover("")
