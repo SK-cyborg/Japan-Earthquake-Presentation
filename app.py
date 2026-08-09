@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & FLOATING BUTTON ---
+# --- CUSTOM CSS FOR AESTHETICS & TINY FLOATING BUTTON ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,12 +15,17 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* CSS to pin the easter egg popover to the bottom right corner */
+    /* CSS to pin and shrink the easter egg popover to a tiny button */
     div[data-testid="stPopover"] {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
+        bottom: 10px;
+        right: 10px;
         z-index: 1000;
+        transform: scale(0.6); /* Makes the button much smaller */
+        opacity: 0.5; /* Makes it slightly see-through until clicked */
+    }
+    div[data-testid="stPopover"]:hover {
+        opacity: 1; /* Fully visible on hover */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -35,7 +40,8 @@ sections = [
     "2. The Science: Why it Happened 💥",
     "3. The Tsunami & Fukushima 🌊",
     "4. Human & Economic Toll 📉",
-    "5. Lessons & Official Sources 📚"
+    "5. The Aftermath 🏚️",
+    "6. Lessons & Official Sources 📚"
 ]
 selection = st.sidebar.radio("Go to slide:", sections)
 
@@ -144,7 +150,7 @@ elif selection == "3. The Tsunami & Fukushima 🌊":
 
 # --- SLIDE 4: HUMAN & ECONOMIC TOLL ---
 elif selection == "4. Human & Economic Toll 📉":
-    st.markdown('<p class="main-title">The Aftermath</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-title">The Immediate Toll</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
@@ -169,8 +175,45 @@ elif selection == "4. Human & Economic Toll 📉":
         fig2 = px.bar(df_econ, x="Disaster Event", y="Estimated Cost (Billion USD)", title="Economic Cost Comparison", color="Estimated Cost (Billion USD)", color_continuous_scale="Reds")
         st.plotly_chart(fig2, use_container_width=True)
 
-# --- SLIDE 5: LESSONS & SOURCES ---
-elif selection == "5. Lessons & Official Sources 📚":
+# --- SLIDE 5: THE AFTERMATH ---
+elif selection == "5. The Aftermath 🏚️":
+    st.markdown('<p class="main-title">The Long-Term Aftermath</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">A decade later, the scars of 2011 remain visible globally and locally.</p>', unsafe_allow_html=True)
+
+    tab1, tab2, tab3 = st.tabs(["☢️ Environmental Legacy", "👥 Societal & Human Impact", "🏭 Global Supply Chains"])
+
+    with tab1:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### The Fukushima Clean-up")
+        st.markdown("""
+        * **Decommissioning:** Dismantling the melted Fukushima Daiichi reactors is expected to take **30 to 40 years**. Heavily shielded robots are still being used to map and retrieve highly radioactive fuel debris.
+        * **Radioactive Water Release:** As of 2023, Japan began releasing over 1 million tons of treated, diluted radioactive wastewater into the Pacific Ocean. While approved by the UN's IAEA, it caused massive diplomatic fallout and seafood import bans from neighboring countries.
+        * **Exclusion Zones:** Though heavily reduced over the last decade, large swathes of land around the plant remain uninhabitable "difficult-to-return" zones due to lingering soil radiation.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab2:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### The Invisible Toll: Displacement & Trauma")
+        st.markdown("""
+        * **Displacement:** Over **470,000 people** were evacuated in the immediate aftermath. Even a decade later, tens of thousands remained unable or unwilling to return to their hometowns.
+        * **Disaster-Related Deaths:** In Fukushima prefecture, the number of people who died from "disaster-related causes" (such as suicide, stress-induced illnesses, and poor living conditions during evacuation) actually **surpassed** the number of people killed directly by the earthquake and tsunami.
+        * **Ghost Towns:** Many coastal towns have struggled to recover their populations, leaving behind aging demographics in newly built, but empty, infrastructure.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab3:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### The Energy Shift & Supply Chain Shock")
+        st.markdown("""
+        * **The Global Supply Chain:** The Tohoku region was a major hub for automotive and electronics manufacturing. The disaster halted global production lines for companies like Toyota, Honda, and Apple due to a sudden lack of critical microchips, pigments, and auto parts.
+        * **Japan's Energy Crisis:** Before 2011, nuclear power provided about **30% of Japan's electricity**. Following the disaster, Japan shut down all of its nuclear reactors. To keep the lights on, the country had to massively increase its imports of fossil fuels (coal and liquid natural gas), causing a severe trade deficit and a spike in carbon emissions.
+        * **Reconstruction Budget:** The Japanese government allocated over **32 trillion yen** (approx. $250+ billion USD) for a massive "Build Back Better" reconstruction framework over 10 years.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# --- SLIDE 6: LESSONS & SOURCES ---
+elif selection == "6. Lessons & Official Sources 📚":
     st.markdown('<p class="main-title">Lessons Learned & Official Sources</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
