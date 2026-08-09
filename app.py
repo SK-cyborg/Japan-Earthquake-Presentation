@@ -64,7 +64,8 @@ sections = [
     "3. The Tsunami & Fukushima 🌊",
     "4. Toll & Aftermath 📉🏚️",
     "5. Lessons & Official Sources 📚",
-    "6. Fun Facts & Trivia 🧠"
+    "6. Fun Facts & Trivia 🧠",
+    "7. Test Your Knowledge (Quiz) 📝"
 ]
 selection = st.sidebar.radio("Go to slide:", sections)
 
@@ -303,6 +304,43 @@ elif selection == "6. Fun Facts & Trivia 🧠":
         * **Centuries of Silence:** GPS data revealed that the fault line where the quake happened had been locked and accumulating tension for **over 600 years** before it violently gave way.
         """)
         st.markdown('</div>', unsafe_allow_html=True)
+
+# --- SLIDE 7: QUIZ ---
+elif selection == "7. Test Your Knowledge (Quiz) 📝":
+    st.markdown('<p class="main-title">Interactive Quiz</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Test what you learned about the 2011 Tohoku Earthquake & Tsunami</p>', unsafe_allow_html=True)
+    
+    with st.form("quiz_form"):
+        st.markdown("### Question 1: What was the magnitude of the Tohoku earthquake on the Moment Magnitude Scale?")
+        q1 = st.radio("Select one:", ["7.5", "8.2", "9.0", "9.9"], key="q1", index=None)
+        
+        st.markdown("### Question 2: What was the primary cause of the vast majority of fatalities during the event?")
+        q2 = st.radio("Select one:", ["Building collapses", "The massive Tsunami", "Fukushima radiation leaks", "Urban fires"], key="q2", index=None)
+        
+        st.markdown("### Question 3: Which two tectonic plates interacted at this subduction zone boundary?")
+        q3 = st.radio("Select one:", ["Pacific Plate and North American Plate", "Eurasian Plate and African Plate", "Nazca Plate and South American Plate", "Indo-Australian Plate and Eurasian Plate"], key="q3", index=None)
+        
+        st.markdown("### Question 4: Approximately how much did the disaster cost in economic losses, making it the costliest natural disaster in history?")
+        q4 = st.radio("Select one:", ["$50 billion", "$100 billion", "$235 billion", "$500 billion"], key="q4", index=None)
+        
+        submitted = st.form_submit_button("Submit Answers")
+        
+        if submitted:
+            score = 0
+            total = 4
+            if q1 == "9.0": score += 1
+            if q2 == "The massive Tsunami": score += 1
+            if q3 == "Pacific Plate and North American Plate": score += 1
+            if q4 == "$235 billion": score += 1
+            
+            st.markdown("---")
+            st.subheader(f"Your Score: {score} / {total} ({int((score/total)*100)}%)")
+            if score == total:
+                st.success("🎉 Perfect score! You're an expert on the 2011 Tohoku disaster.")
+            elif score >= 2:
+                st.info("👍 Good job! Review the slides to brush up on what you missed.")
+            else:
+                st.warning("⚠️ Keep studying! Check out the overview and science slides to learn more.")
 
 
 # --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR) ---
