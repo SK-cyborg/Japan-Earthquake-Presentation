@@ -18,7 +18,7 @@ st.markdown("""
     /* CSS to pin and shrink the easter egg popover to a tiny button */
     div[data-testid="stPopover"] {
         position: fixed;
-        bottom: 10px;
+        bottom: 80px; /* Increased from 10px to sit ABOVE the Streamlit 'Manage App' button */
         right: 10px;
         z-index: 1000;
         transform: scale(0.6); /* Makes the button much smaller */
