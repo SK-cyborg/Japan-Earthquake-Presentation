@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & 20x20 SQUARE BUTTON ---
+# --- CUSTOM CSS FOR AESTHETICS & STACKED HIDDEN BUTTONS ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,36 +15,40 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* Target the button itself inside the popover to make it a 20x20 square */
+    /* Target buttons inside popovers to make them 20x20 squares */
     div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
         min-height: 20px !important;
         padding: 0px !important;
-        border-radius: 0px !important; /* Forces it to be a sharp square */
-        background-color: #9CA3AF !important; /* Subtle grey color */
+        border-radius: 0px !important; 
+        background-color: #9CA3AF !important; 
         border: none !important;
     }
     
-    /* Hide any text/icons inside the button to keep it a pure square */
+    /* Hide text/icons inside popover buttons */
     div[data-testid="stPopover"] button p, div[data-testid="stPopover"] button div {
         display: none !important;
     }
     
-    /* Pin the popover container above the manage app button */
+    /* Base popover stealth styling */
     div[data-testid="stPopover"] {
         position: fixed;
-        bottom: 75px; /* Above the 'Manage App' button */
-        right: 15px;  /* Pushed to the right edge */
+        right: 15px;  
         z-index: 9999;
-        opacity: 0.3; /* Semi-transparent until hovered */
+        opacity: 0.1; /* Super hidden */
         transition: opacity 0.3s ease;
     }
     
     div[data-testid="stPopover"]:hover {
-        opacity: 1; /* Fully visible when hovered */
+        opacity: 1; /* Visible on hover */
     }
+
+    /* Stacked positions */
+    .popover-top div[data-testid="stPopover"] { bottom: 105px; }
+    .popover-mid div[data-testid="stPopover"] { bottom: 75px; }
+    .popover-bot div[data-testid="stPopover"] { bottom: 45px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -165,12 +169,11 @@ elif selection == "3. The Tsunami & Fukushima 🌊":
         
         st.markdown('<div class="quote-box">"A major factor that contributed to the accident was the widespread assumption in Japan that its nuclear power plants were so safe that an accident of this magnitude was simply unthinkable." <br><br>— <b>International Atomic Energy Agency (IAEA) Report</b></div>', unsafe_allow_html=True)
 
-# --- SLIDE 4: TOLL & AFTERMATH (MERGED) ---
+# --- SLIDE 4: TOLL & AFTERMATH ---
 elif selection == "4. Toll & Aftermath 📉🏚️":
     st.markdown('<p class="main-title">Toll & Long-Term Aftermath</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Analyzing the immediate devastation and the decade-long legacy</p>', unsafe_allow_html=True)
     
-    # 4 Tabs merging the old slides 4 and 5
     tab1, tab2, tab3, tab4 = st.tabs(["📉 Immediate Toll", "☢️ Environmental Legacy", "👥 Societal & Human Impact", "🏭 Global Economy"])
     
     with tab1:
@@ -258,34 +261,62 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGG: BOTTOM RIGHT CORNER (SQUARE) ---
-# Passed an empty string so no text forces its way into the button layout
-egg_popover = st.popover("") 
-with egg_popover:
+# --- EASTER EGGS: STACKED HIDDEN BUTTONS ---
+
+# 1. TOP BUTTON (Hitler Art School Joke)
+st.markdown('<div class="popover-top">', unsafe_allow_html=True)
+egg_top = st.popover("")
+with egg_top:
     st.write("Authorized Access Only")
-    code = st.text_input("Enter code:", type="password", key="egg_code")
-    
-    if code == "100%":
+    code_top = st.text_input("Enter code:", type="password", key="egg_code_top")
+    if code_top == "100%":
+        st.success("Access Granted.")
+        st.markdown("<h4 style='text-align:center;'>Hitler's Art School Application (1907)</h4>", unsafe_allow_html=True)
+        df_art = pd.DataFrame({
+            "Decision": ["Rejected", "Also Rejected, but in German", "Told to try Architecture instead"],
+            "Percent": [70, 29, 1]
+        })
+        fig_art = px.pie(df_art, values="Percent", names="Decision", hole=0.3, color_discrete_sequence=px.colors.sequential.Reds_r)
+        fig_art.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
+        st.plotly_chart(fig_art, use_container_width=True)
+    elif code_top:
+        st.error("Invalid Code.")
+st.markdown('</div>', unsafe_allow_html=True)
+
+# 2. MIDDLE BUTTON (Historically Nuked Countries - The Original Flag Joke)
+st.markdown('<div class="popover-mid">', unsafe_allow_html=True)
+egg_mid = st.popover("")
+with egg_mid:
+    st.write("Authorized Access Only")
+    code_mid = st.text_input("Enter code:", type="password", key="egg_code_mid")
+    if code_mid == "100%":
         st.success("Access Granted.")
         st.markdown("<h4 style='text-align:center;'>Historically Nuked Countries</h4>", unsafe_allow_html=True)
-        
-        # Creating a pie chart that looks exactly like the Japanese Flag
         df_nuked = pd.DataFrame({"Country": ["Japan"], "Percentage": [100]})
-        
-        # #BC002D is the official crimson red of the Japanese Flag
         fig_egg = px.pie(df_nuked, values="Percentage", names="Country", color_discrete_sequence=["#BC002D"]) 
-        
-        fig_egg.update_layout(
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            showlegend=False,
-            margin=dict(l=0, r=0, t=0, b=0),
-            height=200, width=200
-        )
-        
-        # Removes the hover text and lines to make it a pure circle
+        fig_egg.update_layout(paper_bgcolor="white", plot_bgcolor="white", showlegend=False, margin=dict(l=0, r=0, t=0, b=0), height=200, width=200)
         fig_egg.update_traces(textinfo='none', hovertemplate='<b>%{label}</b><br>100%<extra></extra>')
-        
         st.plotly_chart(fig_egg, use_container_width=True)
-    elif code:
+    elif code_mid:
         st.error("Invalid Code.")
+st.markdown('</div>', unsafe_allow_html=True)
+
+# 3. BOTTOM BUTTON (Invading Russia in Winter Joke)
+st.markdown('<div class="popover-bot">', unsafe_allow_html=True)
+egg_bot = st.popover("")
+with egg_bot:
+    st.write("Authorized Access Only")
+    code_bot = st.text_input("Enter code:", type="password", key="egg_code_bot")
+    if code_bot == "100%":
+        st.success("Access Granted.")
+        st.markdown("<h4 style='text-align:center;'>Success Rate: Invading Russia During Winter</h4>", unsafe_allow_html=True)
+        df_inv = pd.DataFrame({
+            "Dictator/General": ["Napoleon (1812)", "Hitler (1941)"],
+            "Success Rate (%)": [0, 0]
+        })
+        fig_inv = px.bar(df_inv, x="Dictator/General", y="Success Rate (%)", range_y=[0, 100], color="Dictator/General", color_discrete_sequence=["#3B82F6", "#EF4444"])
+        fig_inv.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
+        st.plotly_chart(fig_inv, use_container_width=True)
+    elif code_bot:
+        st.error("Invalid Code.")
+st.markdown('</div>', unsafe_allow_html=True)
