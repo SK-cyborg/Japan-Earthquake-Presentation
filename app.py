@@ -18,7 +18,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- SIDEBAR NAVIGATION ---
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Flag_of_Japan.svg/320px-Flag_of_Japan.svg.png", width=100)
+st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
 st.sidebar.title("Navigation")
 st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
 
