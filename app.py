@@ -63,7 +63,8 @@ sections = [
     "2. The Science: Why it Happened 💥",
     "3. The Tsunami & Fukushima 🌊",
     "4. Toll & Aftermath 📉🏚️",
-    "5. Lessons & Official Sources 📚"
+    "5. Lessons & Official Sources 📚",
+    "6. Fun Facts & Trivia 🧠"
 ]
 selection = st.sidebar.radio("Go to slide:", sections)
 
@@ -259,6 +260,48 @@ elif selection == "5. Lessons & Official Sources 📚":
         * 🌧️ [Japan Meteorological Agency (JMA) Portal](https://www.jma.go.jp/jma/en/2011_Earthquake/2011_Earthquake.html)
         """)
         
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# --- SLIDE 6: FUN FACTS & TRIVIA ---
+elif selection == "6. Fun Facts & Trivia 🧠":
+    st.markdown('<p class="main-title">Mind-Blowing Facts & Trivia</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Fascinating and bizarre scientific realities of the 2011 disaster</p>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### 🌍 Shifting Planet Earth")
+        st.markdown("""
+        * **Axis Tilt:** The sheer release of tectonic energy shifted the planet's axis by roughly **10 to 25 centimeters** (4 to 10 inches).
+        * **Shorter Days:** Because the Earth's mass shifted closer to its center during the fault slip, our rotation sped up slightly, making days **1.8 microseconds shorter** permanently!
+        * **Islands on the Move:** The main island of Honshu was shoved eastward by about **2.4 meters (8 feet)** toward North America.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### 🌊 Trans-Pacific Travelers")
+        st.markdown("""
+        * **Ghost Docks:** Entire concrete floating docks from Japanese fishing ports were ripped away and eventually drifted all the way across the Pacific Ocean, washing up on the beaches of Oregon, Washington, and California years later.
+        * **Surviving Sea Life:** Some living Japanese coastal marine species (like fish and crabs) managed to survive a 5,000-mile, multi-year voyage across the ocean trapped inside these floating debris fragments.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### ⚡ Breaking the Scale")
+        st.markdown("""
+        * **Seismograph Overload:** The earthquake was so violently powerful that it actually **maxed out standard seismographs** in Japan. Scientists had to rely on GPS data and distant global monitoring networks to accurately calculate its 9.0 magnitude.
+        * **Jet Speed Tsunami:** The resulting tsunami waves traveled across the open ocean at speeds around **700 to 800 km/h (435 to 500 mph)**—matching the cruising speed of a modern commercial airliner.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### 🔔 Ring of Fire Giants")
+        st.markdown("""
+        * **Megaquake Club:** The 2011 Tohoku earthquake ranks as the **4th largest earthquake** ever recorded globally since modern instrumental record-keeping began in 1900 (behind Chile 1960, Alaska 1964, and Sumatra 2004).
+        * **Centuries of Silence:** GPS data revealed that the fault line where the quake happened had been locked and accumulating tension for **over 600 years** before it violently gave way.
+        """)
         st.markdown('</div>', unsafe_allow_html=True)
 
 
