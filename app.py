@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & STACKED HIDDEN BUTTONS ---
+# --- CUSTOM CSS FOR AESTHETICS & DISTINCT STACKED SQUARES ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,8 +15,20 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* Target buttons inside popovers to make them 20x20 squares */
-    div[data-testid="stPopover"] button {
+    /* Universal styling for the 3 custom popover wrapper triggers */
+    .fixed-box {
+        position: fixed;
+        right: 15px;
+        z-index: 9999;
+    }
+    
+    /* Specific vertical stacking tiers */
+    .tier-top { bottom: 105px; }
+    .tier-mid { bottom: 75px; }
+    .tier-bot { bottom: 45px; }
+
+    /* Force the internal buttons to be exact 20x20 grey squares */
+    .fixed-box div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
@@ -27,28 +39,21 @@ st.markdown("""
         border: none !important;
     }
     
-    /* Hide text/icons inside popover buttons */
-    div[data-testid="stPopover"] button p, div[data-testid="stPopover"] button div {
+    /* Hide default text/icons inside the square buttons */
+    .fixed-box div[data-testid="stPopover"] button p, 
+    .fixed-box div[data-testid="stPopover"] button div {
         display: none !important;
     }
     
-    /* Base popover stealth styling */
-    div[data-testid="stPopover"] {
-        position: fixed;
-        right: 15px;  
-        z-index: 9999;
-        opacity: 0.1; /* Super hidden */
+    /* Stealth opacity behavior */
+    .fixed-box div[data-testid="stPopover"] {
+        opacity: 0.1;
         transition: opacity 0.3s ease;
     }
     
-    div[data-testid="stPopover"]:hover {
-        opacity: 1; /* Visible on hover */
+    .fixed-box div[data-testid="stPopover"]:hover {
+        opacity: 1;
     }
-
-    /* Stacked positions */
-    .popover-top div[data-testid="stPopover"] { bottom: 105px; }
-    .popover-mid div[data-testid="stPopover"] { bottom: 75px; }
-    .popover-bot div[data-testid="stPopover"] { bottom: 45px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -261,10 +266,10 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGGS: STACKED HIDDEN BUTTONS ---
+# --- EASTER EGGS: STACKED HIDDEN SQUARES ---
 
 # 1. TOP BUTTON (Hitler Art School Joke)
-st.markdown('<div class="popover-top">', unsafe_allow_html=True)
+st.markdown('<div class="fixed-box tier-top">', unsafe_allow_html=True)
 egg_top = st.popover("")
 with egg_top:
     st.write("Authorized Access Only")
@@ -283,8 +288,8 @@ with egg_top:
         st.error("Invalid Code.")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 2. MIDDLE BUTTON (Historically Nuked Countries - The Original Flag Joke)
-st.markdown('<div class="popover-mid">', unsafe_allow_html=True)
+# 2. MIDDLE BUTTON (Historically Nuked Countries - Flag Joke)
+st.markdown('<div class="fixed-box tier-mid">', unsafe_allow_html=True)
 egg_mid = st.popover("")
 with egg_mid:
     st.write("Authorized Access Only")
@@ -302,7 +307,7 @@ with egg_mid:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # 3. BOTTOM BUTTON (Invading Russia in Winter Joke)
-st.markdown('<div class="popover-bot">', unsafe_allow_html=True)
+st.markdown('<div class="fixed-box tier-bot">', unsafe_allow_html=True)
 egg_bot = st.popover("")
 with egg_bot:
     st.write("Authorized Access Only")
