@@ -16,7 +16,7 @@ st.markdown("""
     h3 {color: #1E40AF;}
     
     /* Pin native popover containers to the left edge, hidden behind the sidebar */
-    div[data-testid="stPopover"] {
+    div.block-container div[data-testid="stPopover"] {
         position: fixed !important;
         left: 10px !important;
         z-index: 10 !important;
@@ -24,17 +24,17 @@ st.markdown("""
         transition: opacity 0.3s ease;
     }
     
-    div[data-testid="stPopover"]:hover {
+    div.block-container div[data-testid="stPopover"]:hover {
         opacity: 1;
     }
 
-    /* Stack them vertically on the left edge using nth-of-type */
-    div[data-testid="stPopover"]:nth-of-type(1) { top: 80px !important; }
-    div[data-testid="stPopover"]:nth-of-type(2) { top: 110px !important; }
-    div[data-testid="stPopover"]:nth-of-type(3) { top: 140px !important; }
+    /* Stack them uniquely and sequentially on the left edge behind the sidebar */
+    div.block-container div[data-testid="stPopover"]:nth-of-type(1) { top: 80px !important; }
+    div.block-container div[data-testid="stPopover"]:nth-of-type(2) { top: 110px !important; }
+    div.block-container div[data-testid="stPopover"]:nth-of-type(3) { top: 140px !important; }
 
     /* Target the button itself inside the popover to make it a 20x20 square */
-    div[data-testid="stPopover"] button {
+    div.block-container div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
@@ -46,8 +46,8 @@ st.markdown("""
     }
     
     /* Hide any text/icons inside the button to keep it a pure square */
-    div[data-testid="stPopover"] button p, 
-    div[data-testid="stPopover"] button div {
+    div.block-container div[data-testid="stPopover"] button p, 
+    div.block-container div[data-testid="stPopover"] button div {
         display: none !important;
     }
     </style>
