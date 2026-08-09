@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & LEFT SIDEBAR-HIDDEN SQUARES ---
+# --- CUSTOM CSS FOR AESTHETICS & LEFT SIDEBAR-HIDDEN POPOVER SQUARES ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,44 +15,40 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* Container for positioning buttons behind the left sidebar */
-    .fixed-box {
-        position: fixed;
-        left: 10px;
-        z-index: 10;
+    /* Pin native popover containers to the left edge, hidden behind the sidebar */
+    div[data-testid="stPopover"] {
+        position: fixed !important;
+        left: 10px !important;
+        z-index: 10 !important;
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
     }
     
-    /* Vertical stacking tiers on the left edge */
-    .tier-top { top: 80px; }
-    .tier-mid { top: 110px; }
-    .tier-bot { top: 140px; }
+    div[data-testid="stPopover"]:hover {
+        opacity: 1;
+    }
+
+    /* Stack them vertically on the left edge using nth-of-type */
+    div[data-testid="stPopover"]:nth-of-type(1) { top: 80px !important; }
+    div[data-testid="stPopover"]:nth-of-type(2) { top: 110px !important; }
+    div[data-testid="stPopover"]:nth-of-type(3) { top: 140px !important; }
 
     /* Target the button itself inside the popover to make it a 20x20 square */
-    .fixed-box div[data-testid="stPopover"] button {
+    div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
         min-height: 20px !important;
         padding: 0px !important;
-        border-radius: 0px !important; /* Forces it to be a sharp square */
-        background-color: #9CA3AF !important; /* Subtle grey color */
+        border-radius: 0px !important; 
+        background-color: #9CA3AF !important; 
         border: none !important;
     }
     
     /* Hide any text/icons inside the button to keep it a pure square */
-    .fixed-box div[data-testid="stPopover"] button p, 
-    .fixed-box div[data-testid="stPopover"] button div {
+    div[data-testid="stPopover"] button p, 
+    div[data-testid="stPopover"] button div {
         display: none !important;
-    }
-    
-    /* Pin the popover container behind the sidebar on the left */
-    .fixed-box div[data-testid="stPopover"] {
-        opacity: 0.3; /* Semi-transparent until hovered */
-        transition: opacity 0.3s ease;
-    }
-    
-    .fixed-box div[data-testid="stPopover"]:hover {
-        opacity: 1; /* Fully visible when hovered */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -266,10 +262,9 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGGS: STACKED HIDDEN SQUARES (BEHIND LEFT SIDEBAR) ---
+# --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR) ---
 
-# 1. TOP BUTTON (Hitler Art School Joke)
-st.markdown('<div class="fixed-box tier-top">', unsafe_allow_html=True)
+# 1. TOP POPOVER (Hitler Art School Joke)
 egg_top = st.popover("")
 with egg_top:
     st.write("Authorized Access Only")
@@ -286,10 +281,8 @@ with egg_top:
         st.plotly_chart(fig_art, use_container_width=True)
     elif code_top:
         st.error("Invalid Code.")
-st.markdown('</div>', unsafe_allow_html=True)
 
-# 2. MIDDLE BUTTON (Historically Nuked Countries - Flag Joke)
-st.markdown('<div class="fixed-box tier-mid">', unsafe_allow_html=True)
+# 2. MIDDLE POPOVER (Historically Nuked Countries - Flag Joke)
 egg_mid = st.popover("")
 with egg_mid:
     st.write("Authorized Access Only")
@@ -304,10 +297,8 @@ with egg_mid:
         st.plotly_chart(fig_egg, use_container_width=True)
     elif code_mid:
         st.error("Invalid Code.")
-st.markdown('</div>', unsafe_allow_html=True)
 
-# 3. BOTTOM BUTTON (Invading Russia in Winter Joke)
-st.markdown('<div class="fixed-box tier-bot">', unsafe_allow_html=True)
+# 3. BOTTOM POPOVER (Invading Russia in Winter Joke)
 egg_bot = st.popover("")
 with egg_bot:
     st.write("Authorized Access Only")
@@ -324,4 +315,3 @@ with egg_bot:
         st.plotly_chart(fig_inv, use_container_width=True)
     elif code_bot:
         st.error("Invalid Code.")
-st.markdown('</div>', unsafe_allow_html=True)
