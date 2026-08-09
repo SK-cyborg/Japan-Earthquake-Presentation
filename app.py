@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & SIDEBAR-HIDDEN SQUARES ---
+# --- CUSTOM CSS FOR AESTHETICS & LEFT SIDEBAR-HIDDEN SQUARES ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,44 +15,44 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* Universal positioning hidden underneath the left-side sidebar (fixed to the left edge) */
+    /* Container for positioning buttons behind the left sidebar */
     .fixed-box {
         position: fixed;
         left: 10px;
-        z-index: 1; /* Sits beneath the expanded sidebar (which has a high z-index), but visible when sidebar is retracted */
+        z-index: 10;
     }
     
     /* Vertical stacking tiers on the left edge */
-    .tier-top { top: 120px; }
-    .tier-mid { top: 150px; }
-    .tier-bot { top: 180px; }
+    .tier-top { top: 80px; }
+    .tier-mid { top: 110px; }
+    .tier-bot { top: 140px; }
 
-    /* Force the internal buttons to be exact 20x20 grey squares */
+    /* Target the button itself inside the popover to make it a 20x20 square */
     .fixed-box div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
         min-height: 20px !important;
         padding: 0px !important;
-        border-radius: 0px !important; 
-        background-color: #9CA3AF !important; 
+        border-radius: 0px !important; /* Forces it to be a sharp square */
+        background-color: #9CA3AF !important; /* Subtle grey color */
         border: none !important;
     }
     
-    /* Hide default text/icons inside the square buttons */
+    /* Hide any text/icons inside the button to keep it a pure square */
     .fixed-box div[data-testid="stPopover"] button p, 
     .fixed-box div[data-testid="stPopover"] button div {
         display: none !important;
     }
     
-    /* Subtle look when revealed */
+    /* Pin the popover container behind the sidebar on the left */
     .fixed-box div[data-testid="stPopover"] {
-        opacity: 0.3;
-        transition: opacity 0.2s ease;
+        opacity: 0.3; /* Semi-transparent until hovered */
+        transition: opacity 0.3s ease;
     }
     
     .fixed-box div[data-testid="stPopover"]:hover {
-        opacity: 1;
+        opacity: 1; /* Fully visible when hovered */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -266,7 +266,7 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGGS: STACKED HIDDEN SQUARES (BEHIND SIDEBAR ON LEFT EDGE) ---
+# --- EASTER EGGS: STACKED HIDDEN SQUARES (BEHIND LEFT SIDEBAR) ---
 
 # 1. TOP BUTTON (Hitler Art School Joke)
 st.markdown('<div class="fixed-box tier-top">', unsafe_allow_html=True)
