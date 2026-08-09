@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & HOVER-REVEAL 20x20 SQUARES ---
+# --- CUSTOM CSS FOR AESTHETICS & SIDEBAR-HIDDEN SQUARES ---
 st.markdown("""
     <style>
     .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
@@ -15,17 +15,17 @@ st.markdown("""
     .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
     h3 {color: #1E40AF;}
     
-    /* Universal styling for the 3 custom popover wrapper triggers */
+    /* Universal positioning hidden underneath the left-side sidebar (fixed to the left edge) */
     .fixed-box {
         position: fixed;
-        right: 15px;
-        z-index: 9999;
+        left: 10px;
+        z-index: 1; /* Sits beneath the expanded sidebar (which has a high z-index), but visible when sidebar is retracted */
     }
     
-    /* Specific vertical stacking tiers */
-    .tier-top { bottom: 105px; }
-    .tier-mid { bottom: 75px; }
-    .tier-bot { bottom: 45px; }
+    /* Vertical stacking tiers on the left edge */
+    .tier-top { top: 120px; }
+    .tier-mid { top: 150px; }
+    .tier-bot { top: 180px; }
 
     /* Force the internal buttons to be exact 20x20 grey squares */
     .fixed-box div[data-testid="stPopover"] button {
@@ -45,9 +45,9 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Stealth hover-reveal behavior: nearly invisible (0.02) until hovered */
+    /* Subtle look when revealed */
     .fixed-box div[data-testid="stPopover"] {
-        opacity: 0.02;
+        opacity: 0.3;
         transition: opacity 0.2s ease;
     }
     
@@ -266,7 +266,7 @@ elif selection == "5. Lessons & Official Sources 📚":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# --- EASTER EGGS: STACKED HIDDEN SQUARES (HOVER TO REVEAL) ---
+# --- EASTER EGGS: STACKED HIDDEN SQUARES (BEHIND SIDEBAR ON LEFT EDGE) ---
 
 # 1. TOP BUTTON (Hitler Art School Joke)
 st.markdown('<div class="fixed-box tier-top">', unsafe_allow_html=True)
