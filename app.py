@@ -24,47 +24,61 @@ if "slide_index" not in st.session_state:
     st.session_state.slide_index = 0
 if "anim_key" not in st.session_state:
     st.session_state.anim_key = 0
-if "last_rendered_index" not in st.session_state:
-    st.session_state.last_rendered_index = 0
+if "last_selection" not in st.session_state:
+    st.session_state.last_selection = sections[0]
+
+def change_slide(new_index):
+    if 0 <= new_index < len(sections):
+        st.session_state.slide_index = new_index
+        st.session_state.anim_key += 1
 
 def nav_next():
-    if st.session_state.slide_index < len(sections) - 1:
-        st.session_state.slide_index += 1
+    change_slide(st.session_state.slide_index + 1)
 
 def nav_prev():
-    if st.session_state.slide_index > 0:
-        st.session_state.slide_index -= 1
+    change_slide(st.session_state.slide_index - 1)
+
+def on_sidebar_change():
+    # Sync radio widget selection back to numeric index
+    selected_name = st.session_state.sidebar_radio
+    new_idx = sections.index(selected_name)
+    if new_idx != st.session_state.slide_index:
+        st.session_state.slide_index = new_idx
+        st.session_state.anim_key += 1
 
 # --- SIDEBAR NAVIGATION ---
 st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
 st.sidebar.title("Navigation")
 st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
 
-# Sidebar radio bound directly to session state index
-st.sidebar.radio("Go to slide:", range(len(sections)), format_func=lambda x: sections[x], key="slide_index")
-
-# Detect slide changes (from buttons or sidebar) to trigger animation key & scroll reset
-if st.session_state.slide_index != st.session_state.last_rendered_index:
-    st.session_state.anim_key += 1
-    st.session_state.last_rendered_index = st.session_state.slide_index
-    # Force scroll back to the top of the main container and window
-    components.html("""
-        <script>
-            const doc = window.parent.document;
-            const mainContainer = doc.querySelector('.main');
-            if (mainContainer) {
-                mainContainer.scrollTop = 0;
-            }
-            doc.defaultView.scrollTo(0, 0);
-        </script>
-    """, height=0, width=0)
+# Sidebar radio selector synchronized with session state
+current_selection_name = sections[st.session_state.slide_index]
+st.sidebar.radio(
+    "Go to slide:", 
+    sections, 
+    index=st.session_state.slide_index, 
+    key="sidebar_radio", 
+    on_change=on_sidebar_change
+)
 
 selection = sections[st.session_state.slide_index]
 
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- TSUNAMI WAVE TRANSITION & CUSTOM CSS ---
+# --- TSUNAMI WAVE TRANSITION, SCROLL-TO-TOP & CUSTOM CSS ---
+components.html(f"""
+    <script>
+        // Force scroll back to the absolute top of the page containers instantly
+        const doc = window.parent.document;
+        const containers = doc.querySelectorAll('.main, [data-testid="stAppViewContainer"], section.main, html, body');
+        containers.forEach(el => {{
+            el.scrollTop = 0;
+        }});
+        doc.defaultView.scrollTo(0, 0);
+    </script>
+""", height=0, width=0)
+
 st.markdown(f"""
     <div class="tsunami-transition" id="wave-{st.session_state.anim_key}"></div>
     
