@@ -47,21 +47,17 @@ st.sidebar.radio("Go to slide:", range(len(sections)), format_func=lambda x: sec
 if st.session_state.slide_index != st.session_state.last_rendered_index:
     st.session_state.anim_key += 1
     st.session_state.last_rendered_index = st.session_state.slide_index
-
-# Bulletproof JavaScript injection to force scroll back to the very top of the page containers
-components.html(f"""
-    <script>
-        setTimeout(function() {{
+    # Force scroll back to the top of the main container and window
+    components.html("""
+        <script>
             const doc = window.parent.document;
-            const containers = doc.querySelectorAll('.main, [data-testid="stAppViewContainer"], section.main, html, body');
-            containers.forEach(el => {{
-                el.scrollTop = 0;
-            }});
+            const mainContainer = doc.querySelector('.main');
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
+            }
             doc.defaultView.scrollTo(0, 0);
-        }}, 50);
-    </script>
-    <div id="trigger-{st.session_state.anim_key}"></div>
-""", height=0, width=0)
+        </script>
+    """, height=0, width=0)
 
 selection = sections[st.session_state.slide_index]
 
