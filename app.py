@@ -6,14 +6,58 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS & FOOLPROOF STACKED POPOVERS ---
+# --- CUSTOM CSS FOR AESTHETICS, FONT & BLUE BUBBLE HEADINGS ---
 st.markdown("""
     <style>
-    .main-title {font-size: 48px; font-weight: 800; color: #1E3A8A; margin-bottom: 0px; text-align: center;}
-    .sub-title {font-size: 24px; color: #3B82F6; margin-bottom: 30px; text-align: center;}
-    .card {background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #1E3A8A; margin-bottom: 20px;}
-    .quote-box {background-color: #F3F4F6; padding: 20px; border-left: 5px solid #F59E0B; border-radius: 5px; font-style: italic; color: #374151;}
-    h3 {color: #1E40AF;}
+    /* Apply STXingkai font globally */
+    html, body, [class*="css"], p, div, h1, h2, h3, h4, h5, h6, span, label, li {
+        font-family: 'STXingkai', cursive, sans-serif !important;
+    }
+
+    /* Blue Bubble Style for Page Headings */
+    .main-title {
+        font-size: 42px; 
+        font-weight: 800; 
+        color: #ffffff !important; 
+        background: linear-gradient(135deg, #60A5FA, #2563EB); /* Bright blue gradient */
+        padding: 15px 35px;
+        border-radius: 50px; /* Rounded bubble effect */
+        text-align: center;
+        margin: 10px auto 20px auto;
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        border: 3px solid #BFDBFE;
+        display: block;
+    }
+    
+    .sub-title {
+        font-size: 24px; 
+        color: #1E40AF; 
+        margin-bottom: 30px; 
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    .card {
+        background-color: #ffffff; 
+        padding: 25px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        border-top: 5px solid #1E3A8A; 
+        margin-bottom: 20px;
+    }
+    
+    .quote-box {
+        background-color: #F3F4F6; 
+        padding: 20px; 
+        border-left: 5px solid #F59E0B; 
+        border-radius: 5px; 
+        font-style: italic; 
+        color: #374151;
+    }
+    
+    h3 {
+        color: #1E40AF;
+    }
     
     /* Pin the popover containers behind the left sidebar with stealth hover behavior */
     div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {
@@ -75,7 +119,7 @@ st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JM
 
 # --- SLIDE 1: OVERVIEW & MAP ---
 if selection == "1. Overview & Map 🌍":
-    st.markdown('<p class="main-title">The 2011 Great East Japan Earthquake</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">The 2011 Great East Japan Earthquake</div>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">A devastating 9.0 magnitude megaquake that altered history</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1.2])
@@ -112,7 +156,7 @@ if selection == "1. Overview & Map 🌍":
 
 # --- SLIDE 2: THE SCIENCE ---
 elif selection == "2. The Science: Why it Happened 💥":
-    st.markdown('<p class="main-title">Geological Mechanics</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Geological Mechanics</div>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Understanding Destructive Plate Boundaries</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -144,7 +188,7 @@ elif selection == "2. The Science: Why it Happened 💥":
 
 # --- SLIDE 3: TSUNAMI & FUKUSHIMA ---
 elif selection == "3. The Tsunami & Fukushima 🌊":
-    st.markdown('<p class="main-title">The Secondary Hazards</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">The Secondary Hazards</div>', unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["🌊 The Tsunami", "☢️ Fukushima Daiichi Disaster"])
     
@@ -175,7 +219,7 @@ elif selection == "3. The Tsunami & Fukushima 🌊":
 
 # --- SLIDE 4: TOLL & AFTERMATH ---
 elif selection == "4. Toll & Aftermath 📉🏚️":
-    st.markdown('<p class="main-title">Toll & Long-Term Aftermath</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Toll & Long-Term Aftermath</div>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Analyzing the immediate devastation and the decade-long legacy</p>', unsafe_allow_html=True)
     
     tab1, tab2, tab3, tab4 = st.tabs(["📉 Immediate Toll", "☢️ Environmental Legacy", "👥 Societal & Human Impact", "🏭 Global Economy"])
@@ -235,7 +279,7 @@ elif selection == "4. Toll & Aftermath 📉🏚️":
 
 # --- SLIDE 5: LESSONS & SOURCES ---
 elif selection == "5. Lessons & Official Sources 📚":
-    st.markdown('<p class="main-title">Lessons Learned & Official Sources</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Lessons Learned & Official Sources</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
@@ -266,7 +310,7 @@ elif selection == "5. Lessons & Official Sources 📚":
 
 # --- SLIDE 6: FUN FACTS & TRIVIA ---
 elif selection == "6. Fun Facts & Trivia 🧠":
-    st.markdown('<p class="main-title">Mind-Blowing Facts & Trivia</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Mind-Blowing Facts & Trivia</div>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Fascinating and bizarre scientific realities of the 2011 disaster</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -308,7 +352,7 @@ elif selection == "6. Fun Facts & Trivia 🧠":
 
 # --- SLIDE 7: QUIZ ---
 elif selection == "7. Test Your Knowledge (Quiz) 📝":
-    st.markdown('<p class="main-title">Interactive Quiz</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Interactive Quiz</div>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Test what you learned about the 2011 Tohoku Earthquake & Tsunami</p>', unsafe_allow_html=True)
     
     with st.form("quiz_form"):
@@ -345,7 +389,7 @@ elif selection == "7. Test Your Knowledge (Quiz) 📝":
 
 # --- SLIDE 8: SUMMARY & KEY TAKEAWAYS ---
 elif selection == "8. Summary & Key Takeaways 📌":
-    st.markdown('<p class="main-title">Summary & Key Takeaways</p>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">Summary & Key Takeaways</div>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">A quick executive recap of the 2011 Tohoku Earthquake & Tsunami</p>', unsafe_allow_html=True)
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
