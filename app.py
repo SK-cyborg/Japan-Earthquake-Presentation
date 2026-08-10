@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- STATE MANAGEMENT FOR PPT NAVIGATION ---
+# --- STATE MANAGEMENT FOR PPT NAVIGATION & ANIMATIONS ---
 sections = [
     "1. Overview & Map 🌍",
     "2. The Science: Why it Happened 💥",
@@ -21,24 +21,44 @@ sections = [
 if "current_slide" not in st.session_state:
     st.session_state.current_slide = sections[0]
 
+if "prev_slide_state" not in st.session_state:
+    st.session_state.prev_slide_state = sections[0]
+
+if "transition_key" not in st.session_state:
+    st.session_state.transition_key = 0
+
+# Detect if the slide changed via sidebar or buttons, and force re-trigger counter
+if st.session_state.current_slide != st.session_state.prev_slide_state:
+    st.session_state.prev_slide_state = st.session_state.current_slide
+    st.session_state.transition_key += 1
+
 def nav_next():
     idx = sections.index(st.session_state.current_slide)
     if idx < len(sections) - 1:
         st.session_state.current_slide = sections[idx + 1]
+        st.session_state.prev_slide_state = st.session_state.current_slide
+        st.session_state.transition_key += 1
 
 def nav_prev():
     idx = sections.index(st.session_state.current_slide)
     if idx > 0:
         st.session_state.current_slide = sections[idx - 1]
+        st.session_state.prev_slide_state = st.session_state.current_slide
+        st.session_state.transition_key += 1
 
 
-# --- TSUNAMI TRANSITION & CUSTOM CSS ---
-# By assigning a dynamic ID based on the slide name, the DOM treats it as a new element, 
-# forcing the CSS animation to re-trigger perfectly on every slide change.
-safe_slide_id = "".join(filter(str.isalnum, st.session_state.current_slide))
-
+# --- TSUNAMI TRANSITION, SCROLL-TO-TOP JS & CUSTOM CSS ---
 st.markdown(f"""
-    <div class="tsunami-transition" id="wave-{safe_slide_id}"></div>
+    <script>
+        // Force scroll back to the top of the main container and window on every slide change
+        const mainContent = window.parent.document.querySelector('.main');
+        if (mainContent) {{
+            mainContent.scrollTop = 0;
+        }}
+        window.parent.scrollTo(0, 0);
+    </script>
+
+    <div class="tsunami-transition" id="wave-{st.session_state.transition_key}"></div>
     
     <style>
     /* TSUNAMI WAVE TRANSITION ANIMATION */
