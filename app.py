@@ -6,22 +6,12 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS, FONT & BLUE BUBBLE HEADINGS ---
+# --- CUSTOM CSS FOR AESTHETICS, SAFE FONT & BLUE BUBBLE HEADINGS ---
 st.markdown("""
     <style>
-    /* Apply STXingkai font globally */
-    html, body, [class*="css"], p, div, h1, h2, h3, h4, h5, h6, span, label, li {
+    /* Safely apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
+    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {
         font-family: 'STXingkai', cursive, sans-serif !important;
-    }
-
-    /* Fix the sidebar close/open button looking weird by reverting it to standard font */
-    [data-testid="stSidebarCollapseButton"], 
-    [data-testid="stSidebarCollapseButton"] *,
-    [data-testid="collapsedControl"],
-    [data-testid="collapsedControl"] *,
-    button[kind="header"], 
-    button[kind="header"] * {
-        font-family: "Source Sans Pro", sans-serif !important;
     }
 
     /* Blue Bubble Style for Page Headings */
