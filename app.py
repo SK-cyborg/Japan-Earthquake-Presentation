@@ -22,12 +22,13 @@ sections = [
 # --- BULLETPROOF STATE MANAGEMENT & NAVIGATION ---
 if "slide_index" not in st.session_state:
     st.session_state.slide_index = 0
-if "last_slide" not in st.session_state:
-    st.session_state.last_slide = 0
+if "anim_counter" not in st.session_state:
+    st.session_state.anim_counter = 0
 
 def change_slide(new_index):
     if 0 <= new_index < len(sections):
         st.session_state.slide_index = new_index
+        st.session_state.anim_counter += 1
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -38,7 +39,9 @@ def nav_prev():
 def on_sidebar_change():
     selected_name = st.session_state.sidebar_radio
     new_idx = sections.index(selected_name)
-    st.session_state.slide_index = new_idx
+    if new_idx != st.session_state.slide_index:
+        st.session_state.slide_index = new_idx
+        st.session_state.anim_counter += 1
 
 # --- SIDEBAR NAVIGATION ---
 st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
@@ -59,64 +62,64 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- DETECT SLIDE CHANGE & TRIGGER JS ANIMATION + SCROLL TO TOP ---
-slide_changed = st.session_state.slide_index != st.session_state.last_slide
-if slide_changed:
-    st.session_state.last_slide = st.session_state.slide_index
+# --- TSUNAMI WAVE TRANSITION & ABSOLUTE SCROLL TO TOP ---
+components.html(f"""
+    <div id="trigger-{st.session_state.anim_counter}"></div>
+    <script>
+        const doc = window.parent.document;
+        
+        // 1. Force absolute scroll to top on every single container and the main window
+        doc.defaultView.scrollTo(0, 0);
+        doc.documentElement.scrollTop = 0;
+        doc.body.scrollTop = 0;
+        
+        const containers = doc.querySelectorAll('.main, [data-testid="stAppViewContainer"], section.main, div[data-testid="stVerticalBlock"]');
+        containers.forEach(el => {{
+            el.scrollTop = 0;
+        }});
 
-if slide_changed:
-    components.html("""
-        <script>
-            const doc = window.parent.document;
-            
-            // 1. Force scroll back to the absolute top of the page containers
-            const mainContainer = doc.querySelector('.main');
-            if (mainContainer) {
-                mainContainer.scrollTop = 0;
-            }
-            doc.defaultView.scrollTo(0, 0);
+        // 2. Remove existing wave overlay if present
+        const oldWave = doc.getElementById('tsunami-wave-overlay');
+        if (oldWave) {{
+            oldWave.remove();
+        }}
 
-            // 2. Dynamically inject fresh Tsunami Wave Overlay element
-            const existingWave = doc.getElementById('tsunami-wave-overlay');
-            if (existingWave) {
-                existingWave.remove();
-            }
+        // 3. Create and inject fresh tsunami wave element
+        const wave = doc.createElement('div');
+        wave.id = 'tsunami-wave-overlay';
+        wave.style.position = 'fixed';
+        wave.style.top = '0';
+        wave.style.left = '-150vw';
+        wave.style.width = '120vw';
+        wave.style.height = '100vh';
+        wave.style.background = 'linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%)';
+        wave.style.zIndex = '9999999';
+        wave.style.pointerEvents = 'none';
+        wave.style.borderTopRightRadius = '50% 100%';
+        wave.style.borderBottomRightRadius = '50% 100%';
+        wave.style.boxShadow = '20px 0 50px rgba(0,0,0,0.5)';
+        wave.style.animation = 'tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
 
-            const wave = doc.createElement('div');
-            wave.id = 'tsunami-wave-overlay';
-            wave.style.position = 'fixed';
-            wave.style.top = '0';
-            wave.style.left = '-150vw';
-            wave.style.width = '120vw';
-            wave.style.height = '100vh';
-            wave.style.background = 'linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%)';
-            wave.style.zIndex = '9999999';
-            wave.style.pointerEvents = 'none';
-            wave.style.borderTopRightRadius = '50% 100%';
-            wave.style.borderBottomRightRadius = '50% 100%';
-            wave.style.boxShadow = '20px 0 50px rgba(0,0,0,0.5)';
-            wave.style.animation = 'tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+        if (!doc.getElementById('tsunami-keyframes')) {{
+            const style = doc.createElement('style');
+            style.id = 'tsunami-keyframes';
+            style.innerHTML = `
+                @keyframes tsunamiSweep {{
+                    0% {{ transform: translateX(0); opacity: 1; }}
+                    80% {{ opacity: 1; }}
+                    100% {{ transform: translateX(270vw); opacity: 0; }}
+                }}
+            `;
+            doc.head.appendChild(style);
+        }}
 
-            if (!doc.getElementById('tsunami-keyframes')) {
-                const style = doc.createElement('style');
-                style.id = 'tsunami-keyframes';
-                style.innerHTML = `
-                    @keyframes tsunamiSweep {
-                        0% { transform: translateX(0); opacity: 1; }
-                        80% { opacity: 1; }
-                        100% { transform: translateX(270vw); opacity: 0; }
-                    }
-                `;
-                doc.head.appendChild(style);
-            }
+        doc.body.appendChild(wave);
 
-            doc.body.appendChild(wave);
-
-            setTimeout(() => {
-                if (wave) wave.remove();
-            }, 1300);
-        </script>
-    """, height=0, width=0)
+        setTimeout(() => {{
+            if (wave) wave.remove();
+        }}, 1300);
+    </script>
+""", height=0, width=0)
 
 # --- CUSTOM CSS ---
 st.markdown("""
