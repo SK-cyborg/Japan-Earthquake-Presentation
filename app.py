@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import streamlit.components.v1 as components
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- STATE MANAGEMENT FOR PPT NAVIGATION & ANIMATIONS ---
+# --- SECTIONS DEFINITION ---
 sections = [
     "1. Overview & Map 🌍",
     "2. The Science: Why it Happened 💥",
@@ -18,47 +19,54 @@ sections = [
     "8. Summary & Key Takeaways 📌"
 ]
 
-if "current_slide" not in st.session_state:
-    st.session_state.current_slide = sections[0]
-
-if "prev_slide_state" not in st.session_state:
-    st.session_state.prev_slide_state = sections[0]
-
-if "transition_key" not in st.session_state:
-    st.session_state.transition_key = 0
-
-# Detect if the slide changed via sidebar or buttons, and force re-trigger counter
-if st.session_state.current_slide != st.session_state.prev_slide_state:
-    st.session_state.prev_slide_state = st.session_state.current_slide
-    st.session_state.transition_key += 1
+# --- BULLETPROOF STATE MANAGEMENT & NAVIGATION ---
+if "slide_index" not in st.session_state:
+    st.session_state.slide_index = 0
+if "anim_key" not in st.session_state:
+    st.session_state.anim_key = 0
+if "last_rendered_index" not in st.session_state:
+    st.session_state.last_rendered_index = 0
 
 def nav_next():
-    idx = sections.index(st.session_state.current_slide)
-    if idx < len(sections) - 1:
-        st.session_state.current_slide = sections[idx + 1]
-        st.session_state.prev_slide_state = st.session_state.current_slide
-        st.session_state.transition_key += 1
+    if st.session_state.slide_index < len(sections) - 1:
+        st.session_state.slide_index += 1
 
 def nav_prev():
-    idx = sections.index(st.session_state.current_slide)
-    if idx > 0:
-        st.session_state.current_slide = sections[idx - 1]
-        st.session_state.prev_slide_state = st.session_state.current_slide
-        st.session_state.transition_key += 1
+    if st.session_state.slide_index > 0:
+        st.session_state.slide_index -= 1
 
+# --- SIDEBAR NAVIGATION ---
+st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
+st.sidebar.title("Navigation")
+st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
 
-# --- TSUNAMI TRANSITION, SCROLL-TO-TOP JS & CUSTOM CSS ---
+# Sidebar radio bound directly to session state index
+st.sidebar.radio("Go to slide:", range(len(sections)), format_func=lambda x: sections[x], key="slide_index")
+
+# Detect slide changes (from buttons or sidebar) to trigger animation key & scroll reset
+if st.session_state.slide_index != st.session_state.last_rendered_index:
+    st.session_state.anim_key += 1
+    st.session_state.last_rendered_index = st.session_state.slide_index
+    # Force scroll back to the top of the main container and window
+    components.html("""
+        <script>
+            const doc = window.parent.document;
+            const mainContainer = doc.querySelector('.main');
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
+            }
+            doc.defaultView.scrollTo(0, 0);
+        </script>
+    """, height=0, width=0)
+
+selection = sections[st.session_state.slide_index]
+
+st.sidebar.markdown("---")
+st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
+
+# --- TSUNAMI WAVE TRANSITION & CUSTOM CSS ---
 st.markdown(f"""
-    <script>
-        // Force scroll back to the top of the main container and window on every slide change
-        const mainContent = window.parent.document.querySelector('.main');
-        if (mainContent) {{
-            mainContent.scrollTop = 0;
-        }}
-        window.parent.scrollTo(0, 0);
-    </script>
-
-    <div class="tsunami-transition" id="wave-{st.session_state.transition_key}"></div>
+    <div class="tsunami-transition" id="wave-{st.session_state.anim_key}"></div>
     
     <style>
     /* TSUNAMI WAVE TRANSITION ANIMATION */
@@ -83,7 +91,7 @@ st.markdown(f"""
         100% {{ transform: translateX(270vw); opacity: 0; }}
     }}
 
-    /* Apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
+    /* Safely apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
     h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {{
         font-family: 'STXingkai', cursive, sans-serif !important;
     }}
@@ -169,17 +177,6 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
-
-# --- SIDEBAR NAVIGATION ---
-st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
-st.sidebar.title("Navigation")
-st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
-
-# Sidebar tied to session state
-selection = st.sidebar.radio("Go to slide:", sections, key="current_slide")
-
-st.sidebar.markdown("---")
-st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
 # --- SLIDE 1: OVERVIEW & MAP ---
 if selection == "1. Overview & Map 🌍":
@@ -474,11 +471,11 @@ st.markdown("---")
 col_prev, col_space, col_next = st.columns([2, 6, 2])
 
 with col_prev:
-    if sections.index(selection) > 0:
+    if st.session_state.slide_index > 0:
         st.button("◀ Previous Slide", on_click=nav_prev, type="primary", use_container_width=True)
 
 with col_next:
-    if sections.index(selection) < len(sections) - 1:
+    if st.session_state.slide_index < len(sections) - 1:
         st.button("Next Slide ▶", on_click=nav_next, type="primary", use_container_width=True)
 
 
