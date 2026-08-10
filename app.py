@@ -6,102 +6,7 @@ import plotly.graph_objects as go
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
 
-# --- CUSTOM CSS FOR AESTHETICS, SAFE FONT & BLUE BUBBLE HEADINGS ---
-st.markdown("""
-    <style>
-    /* Safely apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
-    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {
-        font-family: 'STXingkai', cursive, sans-serif !important;
-    }
-
-    /* Blue Bubble Style for Page Headings */
-    .main-title {
-        font-size: 42px; 
-        font-weight: 800; 
-        color: #ffffff !important; 
-        background: linear-gradient(135deg, #60A5FA, #2563EB); /* Bright blue gradient */
-        padding: 15px 35px;
-        border-radius: 50px; /* Rounded bubble effect */
-        text-align: center;
-        margin: 10px auto 20px auto;
-        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
-        border: 3px solid #BFDBFE;
-        display: block;
-    }
-    
-    .sub-title {
-        font-size: 24px; 
-        color: #1E40AF; 
-        margin-bottom: 30px; 
-        text-align: center;
-        font-weight: bold;
-    }
-    
-    .card {
-        background-color: #ffffff; 
-        padding: 25px; 
-        border-radius: 12px; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-        border-top: 5px solid #1E3A8A; 
-        margin-bottom: 20px;
-    }
-    
-    .quote-box {
-        background-color: #F3F4F6; 
-        padding: 20px; 
-        border-left: 5px solid #F59E0B; 
-        border-radius: 5px; 
-        font-style: italic; 
-        color: #374151;
-    }
-    
-    h3 {
-        color: #1E40AF;
-    }
-    
-    /* Pin the popover containers behind the left sidebar with stealth hover behavior */
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {
-        position: fixed !important;
-        left: 10px !important;
-        z-index: 9999 !important;
-        opacity: 0.3;
-        transition: opacity 0.3s ease;
-    }
-    
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {
-        opacity: 1;
-    }
-
-    /* Distinct vertical stacking for each sequential popover container */
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) { top: 80px !important; }
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) { top: 110px !important; }
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) { top: 140px !important; }
-
-    /* Target the button itself inside the popover to make it an exact 20x20 square */
-    div[data-testid="stPopover"] button {
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 20px !important;
-        min-height: 20px !important;
-        padding: 0px !important;
-        border-radius: 0px !important; 
-        background-color: #9CA3AF !important; 
-        border: none !important;
-    }
-    
-    /* Hide text/icons inside the button to keep it a pure square */
-    div[data-testid="stPopover"] button p, 
-    div[data-testid="stPopover"] button div {
-        display: none !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- SIDEBAR NAVIGATION ---
-st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
-st.sidebar.title("Navigation")
-st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
-
+# --- STATE MANAGEMENT FOR PPT NAVIGATION ---
 sections = [
     "1. Overview & Map 🌍",
     "2. The Science: Why it Happened 💥",
@@ -112,7 +17,146 @@ sections = [
     "7. Test Your Knowledge (Quiz) 📝",
     "8. Summary & Key Takeaways 📌"
 ]
-selection = st.sidebar.radio("Go to slide:", sections)
+
+if "current_slide" not in st.session_state:
+    st.session_state.current_slide = sections[0]
+
+def nav_next():
+    idx = sections.index(st.session_state.current_slide)
+    if idx < len(sections) - 1:
+        st.session_state.current_slide = sections[idx + 1]
+
+def nav_prev():
+    idx = sections.index(st.session_state.current_slide)
+    if idx > 0:
+        st.session_state.current_slide = sections[idx - 1]
+
+
+# --- TSUNAMI TRANSITION & CUSTOM CSS ---
+# By assigning a dynamic ID based on the slide name, the DOM treats it as a new element, 
+# forcing the CSS animation to re-trigger perfectly on every slide change.
+safe_slide_id = "".join(filter(str.isalnum, st.session_state.current_slide))
+
+st.markdown(f"""
+    <div class="tsunami-transition" id="wave-{safe_slide_id}"></div>
+    
+    <style>
+    /* TSUNAMI WAVE TRANSITION ANIMATION */
+    .tsunami-transition {{
+        position: fixed;
+        top: 0;
+        left: -150vw;
+        width: 120vw;
+        height: 100vh;
+        background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
+        z-index: 9999999;
+        pointer-events: none;
+        animation: tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        border-top-right-radius: 50% 100%;
+        border-bottom-right-radius: 50% 100%;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    }}
+
+    @keyframes tsunamiSweep {{
+        0% {{ transform: translateX(0); opacity: 1; }}
+        80% {{ opacity: 1; }}
+        100% {{ transform: translateX(270vw); opacity: 0; }}
+    }}
+
+    /* Apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
+    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {{
+        font-family: 'STXingkai', cursive, sans-serif !important;
+    }}
+
+    /* Blue Bubble Style for Page Headings */
+    .main-title {{
+        font-size: 42px; 
+        font-weight: 800; 
+        color: #ffffff !important; 
+        background: linear-gradient(135deg, #60A5FA, #2563EB); 
+        padding: 15px 35px;
+        border-radius: 50px; 
+        text-align: center;
+        margin: 10px auto 20px auto;
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        border: 3px solid #BFDBFE;
+        display: block;
+    }}
+    
+    .sub-title {{
+        font-size: 24px; 
+        color: #1E40AF; 
+        margin-bottom: 30px; 
+        text-align: center;
+        font-weight: bold;
+    }}
+    
+    .card {{
+        background-color: #ffffff; 
+        padding: 25px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        border-top: 5px solid #1E3A8A; 
+        margin-bottom: 20px;
+    }}
+    
+    .quote-box {{
+        background-color: #F3F4F6; 
+        padding: 20px; 
+        border-left: 5px solid #F59E0B; 
+        border-radius: 5px; 
+        font-style: italic; 
+        color: #374151;
+    }}
+    
+    h3 {{
+        color: #1E40AF;
+    }}
+    
+    /* Pin the popover containers behind the left sidebar with stealth hover behavior */
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {{
+        position: fixed !important;
+        left: 10px !important;
+        z-index: 9999 !important;
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
+    }}
+    
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {{
+        opacity: 1;
+    }}
+
+    /* Distinct vertical stacking for each sequential popover container */
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) {{ top: 80px !important; }}
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) {{ top: 110px !important; }}
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) {{ top: 140px !important; }}
+
+    /* Target the button itself inside the popover to make it an exact 20x20 square */
+    div[data-testid="stPopover"] button {{
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        min-height: 20px !important;
+        padding: 0px !important;
+        border-radius: 0px !important; 
+        background-color: #9CA3AF !important; 
+        border: none !important;
+    }}
+    
+    div[data-testid="stPopover"] button p, 
+    div[data-testid="stPopover"] button div {{
+        display: none !important;
+    }}
+    </style>
+""", unsafe_allow_html=True)
+
+# --- SIDEBAR NAVIGATION ---
+st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
+st.sidebar.title("Navigation")
+st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
+
+# Sidebar tied to session state
+selection = st.sidebar.radio("Go to slide:", sections, key="current_slide")
 
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
@@ -405,9 +449,22 @@ elif selection == "8. Summary & Key Takeaways 📌":
     st.markdown('</div>', unsafe_allow_html=True)
 
 
+# --- BOTTOM PPT-STYLE NAVIGATION BUTTONS ---
+st.markdown("---")
+col_prev, col_space, col_next = st.columns([2, 6, 2])
+
+with col_prev:
+    if sections.index(selection) > 0:
+        st.button("◀ Previous Slide", on_click=nav_prev, type="primary", use_container_width=True)
+
+with col_next:
+    if sections.index(selection) < len(sections) - 1:
+        st.button("Next Slide ▶", on_click=nav_next, type="primary", use_container_width=True)
+
+
 # --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR) ---
 
-# 1. TOP POPOVER (Hitler Art School Joke)
+# 1. TOP POPOVER
 egg_top = st.popover("")
 with egg_top:
     st.write("Authorized Access Only")
@@ -425,7 +482,7 @@ with egg_top:
     elif code_top:
         st.error("Invalid Code.")
 
-# 2. MIDDLE POPOVER (Historically Nuked Countries - Flag Joke)
+# 2. MIDDLE POPOVER
 egg_mid = st.popover("")
 with egg_mid:
     st.write("Authorized Access Only")
@@ -441,7 +498,7 @@ with egg_mid:
     elif code_mid:
         st.error("Invalid Code.")
 
-# 3. BOTTOM POPOVER (Invading Russia in Winter Joke)
+# 3. BOTTOM POPOVER
 egg_bot = st.popover("")
 with egg_bot:
     st.write("Authorized Access Only")
