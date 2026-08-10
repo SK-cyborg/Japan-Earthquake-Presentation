@@ -22,15 +22,12 @@ sections = [
 # --- BULLETPROOF STATE MANAGEMENT & NAVIGATION ---
 if "slide_index" not in st.session_state:
     st.session_state.slide_index = 0
-if "anim_key" not in st.session_state:
-    st.session_state.anim_key = 0
-if "last_selection" not in st.session_state:
-    st.session_state.last_selection = sections[0]
+if "last_slide" not in st.session_state:
+    st.session_state.last_slide = 0
 
 def change_slide(new_index):
     if 0 <= new_index < len(sections):
         st.session_state.slide_index = new_index
-        st.session_state.anim_key += 1
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -39,12 +36,9 @@ def nav_prev():
     change_slide(st.session_state.slide_index - 1)
 
 def on_sidebar_change():
-    # Sync radio widget selection back to numeric index
     selected_name = st.session_state.sidebar_radio
     new_idx = sections.index(selected_name)
-    if new_idx != st.session_state.slide_index:
-        st.session_state.slide_index = new_idx
-        st.session_state.anim_key += 1
+    st.session_state.slide_index = new_idx
 
 # --- SIDEBAR NAVIGATION ---
 st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
@@ -52,7 +46,6 @@ st.sidebar.title("Navigation")
 st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
 
 # Sidebar radio selector synchronized with session state
-current_selection_name = sections[st.session_state.slide_index]
 st.sidebar.radio(
     "Go to slide:", 
     sections, 
@@ -66,52 +59,75 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- TSUNAMI WAVE TRANSITION, SCROLL-TO-TOP & CUSTOM CSS ---
-components.html(f"""
-    <script>
-        // Force scroll back to the absolute top of the page containers instantly
-        const doc = window.parent.document;
-        const containers = doc.querySelectorAll('.main, [data-testid="stAppViewContainer"], section.main, html, body');
-        containers.forEach(el => {{
-            el.scrollTop = 0;
-        }});
-        doc.defaultView.scrollTo(0, 0);
-    </script>
-""", height=0, width=0)
+# --- DETECT SLIDE CHANGE & TRIGGER JS ANIMATION + SCROLL TO TOP ---
+slide_changed = st.session_state.slide_index != st.session_state.last_slide
+if slide_changed:
+    st.session_state.last_slide = st.session_state.slide_index
 
-st.markdown(f"""
-    <div class="tsunami-transition" id="wave-{st.session_state.anim_key}"></div>
-    
+if slide_changed:
+    components.html("""
+        <script>
+            const doc = window.parent.document;
+            
+            // 1. Force scroll back to the absolute top of the page containers
+            const mainContainer = doc.querySelector('.main');
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
+            }
+            doc.defaultView.scrollTo(0, 0);
+
+            // 2. Dynamically inject fresh Tsunami Wave Overlay element
+            const existingWave = doc.getElementById('tsunami-wave-overlay');
+            if (existingWave) {
+                existingWave.remove();
+            }
+
+            const wave = doc.createElement('div');
+            wave.id = 'tsunami-wave-overlay';
+            wave.style.position = 'fixed';
+            wave.style.top = '0';
+            wave.style.left = '-150vw';
+            wave.style.width = '120vw';
+            wave.style.height = '100vh';
+            wave.style.background = 'linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%)';
+            wave.style.zIndex = '9999999';
+            wave.style.pointerEvents = 'none';
+            wave.style.borderTopRightRadius = '50% 100%';
+            wave.style.borderBottomRightRadius = '50% 100%';
+            wave.style.boxShadow = '20px 0 50px rgba(0,0,0,0.5)';
+            wave.style.animation = 'tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+
+            if (!doc.getElementById('tsunami-keyframes')) {
+                const style = doc.createElement('style');
+                style.id = 'tsunami-keyframes';
+                style.innerHTML = `
+                    @keyframes tsunamiSweep {
+                        0% { transform: translateX(0); opacity: 1; }
+                        80% { opacity: 1; }
+                        100% { transform: translateX(270vw); opacity: 0; }
+                    }
+                `;
+                doc.head.appendChild(style);
+            }
+
+            doc.body.appendChild(wave);
+
+            setTimeout(() => {
+                if (wave) wave.remove();
+            }, 1300);
+        </script>
+    """, height=0, width=0)
+
+# --- CUSTOM CSS ---
+st.markdown("""
     <style>
-    /* TSUNAMI WAVE TRANSITION ANIMATION */
-    .tsunami-transition {{
-        position: fixed;
-        top: 0;
-        left: -150vw;
-        width: 120vw;
-        height: 100vh;
-        background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
-        z-index: 9999999;
-        pointer-events: none;
-        animation: tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        border-top-right-radius: 50% 100%;
-        border-bottom-right-radius: 50% 100%;
-        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
-    }}
-
-    @keyframes tsunamiSweep {{
-        0% {{ transform: translateX(0); opacity: 1; }}
-        80% {{ opacity: 1; }}
-        100% {{ transform: translateX(270vw); opacity: 0; }}
-    }}
-
     /* Safely apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
-    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {{
+    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {
         font-family: 'STXingkai', cursive, sans-serif !important;
-    }}
+    }
 
     /* Blue Bubble Style for Page Headings */
-    .main-title {{
+    .main-title {
         font-size: 42px; 
         font-weight: 800; 
         color: #ffffff !important; 
@@ -123,58 +139,58 @@ st.markdown(f"""
         box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
         border: 3px solid #BFDBFE;
         display: block;
-    }}
+    }
     
-    .sub-title {{
+    .sub-title {
         font-size: 24px; 
         color: #1E40AF; 
         margin-bottom: 30px; 
         text-align: center;
         font-weight: bold;
-    }}
+    }
     
-    .card {{
+    .card {
         background-color: #ffffff; 
         padding: 25px; 
         border-radius: 12px; 
         box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
         border-top: 5px solid #1E3A8A; 
         margin-bottom: 20px;
-    }}
+    }
     
-    .quote-box {{
+    .quote-box {
         background-color: #F3F4F6; 
         padding: 20px; 
         border-left: 5px solid #F59E0B; 
         border-radius: 5px; 
         font-style: italic; 
         color: #374151;
-    }}
+    }
     
-    h3 {{
+    h3 {
         color: #1E40AF;
-    }}
+    }
     
     /* Pin the popover containers behind the left sidebar with stealth hover behavior */
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {{
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {
         position: fixed !important;
         left: 10px !important;
         z-index: 9999 !important;
         opacity: 0.3;
         transition: opacity 0.3s ease;
-    }}
+    }
     
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {{
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {
         opacity: 1;
-    }}
+    }
 
     /* Distinct vertical stacking for each sequential popover container */
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) {{ top: 80px !important; }}
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) {{ top: 110px !important; }}
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) {{ top: 140px !important; }}
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) { top: 80px !important; }
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) { top: 110px !important; }
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) { top: 140px !important; }
 
     /* Target the button itself inside the popover to make it an exact 20x20 square */
-    div[data-testid="stPopover"] button {{
+    div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
@@ -183,12 +199,12 @@ st.markdown(f"""
         border-radius: 0px !important; 
         background-color: #9CA3AF !important; 
         border: none !important;
-    }}
+    }
     
     div[data-testid="stPopover"] button p, 
-    div[data-testid="stPopover"] button div {{
+    div[data-testid="stPopover"] button div {
         display: none !important;
-    }}
+    }
     </style>
 """, unsafe_allow_html=True)
 
