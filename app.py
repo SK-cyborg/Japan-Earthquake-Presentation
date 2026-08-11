@@ -29,7 +29,7 @@ if "trigger_transition" not in st.session_state:
 def change_slide(new_index):
     if 0 <= new_index < len(sections) and new_index != st.session_state.slide_index:
         st.session_state.slide_index = new_index
-        st.session_state.trigger_transition = True
+        st.session_state.trigger_transition = True # Flag to run the wave and scroll
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -60,8 +60,9 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- TSUNAMI WAVE & DELAYED SCROLL-TO-TOP TRIGGER ---
+# --- TSUNAMI WAVE & SCROLL TO TOP TRIGGER ---
 if st.session_state.trigger_transition:
+    # Generate a unique ID so the browser is forced to play the animation every time
     anim_id = str(uuid.uuid4())[:8]
     
     # 1. PURE CSS WAVE ANIMATION
@@ -89,33 +90,26 @@ if st.session_state.trigger_transition:
         <div class="wave-{anim_id}"></div>
     """, unsafe_allow_html=True)
     
-    # 2. MULTI-STAGE SCROLL FIX (Handles heavy charts & tabs loading after render)
+    # 2. SMOOTH JAVASCRIPT SCROLL & BLUR (Fixes rubber-banding)
     components.html("""
         <script>
             const doc = window.parent.document;
             
+            // This is the magic fix: Blurring the button stops Streamlit from pulling the screen back down!
             if (doc.activeElement) {
                 doc.activeElement.blur();
             }
             
-            function forceTop() {
-                const mainContainer = doc.querySelector('.main') || doc.querySelector('[data-testid="stAppViewContainer"]');
-                if (mainContainer) {
-                    mainContainer.scrollTop = 0;
-                }
-                window.parent.scrollTo(0, 0);
-                doc.documentElement.scrollTop = 0;
-                doc.body.scrollTop = 0;
+            // Scroll safely to top
+            const mainContainer = doc.querySelector('.main') || doc.querySelector('[data-testid="stAppViewContainer"]');
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
             }
-            
-            // Fire immediately and repeatedly to beat chart layout shifts
-            forceTop();
-            setTimeout(forceTop, 50);
-            setTimeout(forceTop, 150300);
-            setTimeout(forceTop, 300);
+            window.parent.scrollTo(0, 0);
         </script>
     """, height=0, width=0)
     
+    # Reset flag so it doesn't trigger when taking quizzes, etc.
     st.session_state.trigger_transition = False
 
 # --- CUSTOM CSS ---
