@@ -28,7 +28,7 @@ if "anim_counter" not in st.session_state:
 def change_slide(new_index):
     if 0 <= new_index < len(sections) and new_index != st.session_state.slide_index:
         st.session_state.slide_index = new_index
-        st.session_state.anim_counter += 1 # Forces new animation and scroll
+        st.session_state.anim_counter += 1 # Forces new animation and scroll lock
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -60,32 +60,39 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- 1. FORCE SCROLL TO TOP (Executes on every render) ---
+
+# --- 1. AGGRESSIVE SCROLL LOCK ---
+# Streamlit natively tries to yank the page down to where the button was clicked.
+# This script pins the scroll position to the top aggressively for 1.5 seconds to overpower it.
 components.html(f"""
-    <div id="scroll-trigger-{st.session_state.anim_counter}"></div>
+    <div id="scroll-lock-{st.session_state.anim_counter}"></div>
     <script>
-        // Use a short timeout to ensure Streamlit has finished rendering the new slide
-        setTimeout(function() {{
-            const parent = window.parent;
-            const doc = parent.document;
-            
-            // Target Streamlit's exact internal scrollable containers
-            const containers = doc.querySelectorAll('.stAppViewContainer, .main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"]');
-            
-            containers.forEach(container => {{
-                container.scrollTop = 0;
-            }});
-            
+        const parent = window.parent;
+        const doc = parent.document;
+        
+        function lockToTop() {{
             parent.scrollTo(0, 0);
             doc.documentElement.scrollTop = 0;
             doc.body.scrollTop = 0;
-        }}, 100);
+            const containers = doc.querySelectorAll('.stAppViewContainer, .main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"]');
+            containers.forEach(container => {{
+                container.scrollTop = 0;
+            }});
+        }}
+        
+        // Pin to top every 15ms for a total of 1.5 seconds while the Tsunami animates
+        let start = Date.now();
+        let scrollLockInterval = setInterval(function() {{
+            lockToTop();
+            if (Date.now() - start > 1500) {{
+                clearInterval(scrollLockInterval);
+            }}
+        }}, 15);
     </script>
 """, height=0, width=0)
 
 # --- 2. PURE CSS TSUNAMI WAVE & STYLING ---
-# By injecting the anim_counter directly into the CSS class and @keyframes name, 
-# the browser is forced to treat it as a brand-new element/animation on every single click.
+# Dynamic CSS @keyframes guarantees the browser treats it as a fresh animation every time
 st.markdown(f"""
     <style>
     /* TSUNAMI WAVE ANIMATION */
@@ -110,7 +117,7 @@ st.markdown(f"""
         animation: sweep_{st.session_state.anim_counter} 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }}
 
-    /* Safely apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
+    /* Safely apply STXingkai font ONLY to text elements */
     h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {{
         font-family: 'STXingkai', cursive, sans-serif !important;
     }}
@@ -173,12 +180,10 @@ st.markdown(f"""
         opacity: 1;
     }}
 
-    /* Distinct vertical stacking for each sequential popover container */
     div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) {{ top: 80px !important; }}
     div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) {{ top: 110px !important; }}
     div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) {{ top: 140px !important; }}
 
-    /* Target the button itself inside the popover to make it an exact 20x20 square */
     div[data-testid="stPopover"] button {{
         width: 20px !important;
         height: 20px !important;
@@ -196,9 +201,10 @@ st.markdown(f"""
     }}
     </style>
     
-    <!-- Render the Wave element in the DOM -->
+    <!-- Render the Wave element in the DOM dynamically -->
     <div class="wave-anim-{st.session_state.anim_counter}"></div>
 """, unsafe_allow_html=True)
+
 
 # --- SLIDE 1: OVERVIEW & MAP ---
 if selection == "1. Overview & Map 🌍":
@@ -503,7 +509,6 @@ with col_next:
 
 # --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR) ---
 
-# 1. TOP POPOVER
 egg_top = st.popover("")
 with egg_top:
     st.write("Authorized Access Only")
@@ -511,17 +516,13 @@ with egg_top:
     if code_top == "100%":
         st.success("Access Granted.")
         st.markdown("<h4 style='text-align:center;'>Hitler's Art School Application (1907)</h4>", unsafe_allow_html=True)
-        df_art = pd.DataFrame({
-            "Decision": ["Rejected", "Also Rejected, but in German", "Told to try Architecture instead"],
-            "Percent": [70, 29, 1]
-        })
+        df_art = pd.DataFrame({"Decision": ["Rejected", "Also Rejected, but in German", "Told to try Architecture instead"], "Percent": [70, 29, 1]})
         fig_art = px.pie(df_art, values="Percent", names="Decision", hole=0.3, color_discrete_sequence=px.colors.sequential.Reds_r)
         fig_art.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
         st.plotly_chart(fig_art, use_container_width=True)
     elif code_top:
         st.error("Invalid Code.")
 
-# 2. MIDDLE POPOVER
 egg_mid = st.popover("")
 with egg_mid:
     st.write("Authorized Access Only")
@@ -537,7 +538,6 @@ with egg_mid:
     elif code_mid:
         st.error("Invalid Code.")
 
-# 3. BOTTOM POPOVER
 egg_bot = st.popover("")
 with egg_bot:
     st.write("Authorized Access Only")
@@ -545,10 +545,7 @@ with egg_bot:
     if code_bot == "100%":
         st.success("Access Granted.")
         st.markdown("<h4 style='text-align:center;'>Success Rate: Invading Russia During Winter</h4>", unsafe_allow_html=True)
-        df_inv = pd.DataFrame({
-            "Dictator/General": ["Napoleon (1812)", "Hitler (1941)"],
-            "Success Rate (%)": [0, 0]
-        })
+        df_inv = pd.DataFrame({"Dictator/General": ["Napoleon (1812)", "Hitler (1941)"], "Success Rate (%)": [0, 0]})
         fig_inv = px.bar(df_inv, x="Dictator/General", y="Success Rate (%)", range_y=[0, 100], color="Dictator/General", color_discrete_sequence=["#3B82F6", "#EF4444"])
         fig_inv.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
         st.plotly_chart(fig_inv, use_container_width=True)
