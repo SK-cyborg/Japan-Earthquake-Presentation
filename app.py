@@ -63,29 +63,41 @@ st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
 # --- TSUNAMI WAVE TRANSITION & ABSOLUTE SCROLL TO TOP ---
+# By passing the counter into the HTML string, it forces Streamlit to re-execute this block every click
 components.html(f"""
     <div id="trigger-{st.session_state.anim_counter}"></div>
     <script>
-        const doc = window.parent.document;
+        const parentDoc = window.parent.document;
+        const parentWin = window.parent;
         
-        // 1. Force absolute scroll to top on every single container and the main window
-        doc.defaultView.scrollTo(0, 0);
-        doc.documentElement.scrollTop = 0;
-        doc.body.scrollTop = 0;
+        // 1. BULLETPROOF SCROLL TO TOP
+        function forceScrollTop() {{
+            parentWin.scrollTo(0, 0);
+            parentDoc.documentElement.scrollTop = 0;
+            parentDoc.body.scrollTop = 0;
+            
+            // Target all possible Streamlit scrollable containers
+            const scrollContainers = parentDoc.querySelectorAll('.main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"], section.main');
+            scrollContainers.forEach(el => {{
+                el.scrollTop = 0;
+            }});
+        }}
         
-        const containers = doc.querySelectorAll('.main, [data-testid="stAppViewContainer"], section.main, div[data-testid="stVerticalBlock"]');
-        containers.forEach(el => {{
-            el.scrollTop = 0;
-        }});
+        // Fire immediately, and fire again slightly delayed to override Streamlit's native scroll-memory
+        forceScrollTop();
+        setTimeout(forceScrollTop, 50);
+        setTimeout(forceScrollTop, 150);
+        setTimeout(forceScrollTop, 300);
 
-        // 2. Remove existing wave overlay if present
-        const oldWave = doc.getElementById('tsunami-wave-overlay');
+        // 2. TSUNAMI ANIMATION OVERLAY
+        // Remove existing wave if it got stuck
+        let oldWave = parentDoc.getElementById('tsunami-wave-overlay');
         if (oldWave) {{
             oldWave.remove();
         }}
 
-        // 3. Create and inject fresh tsunami wave element
-        const wave = doc.createElement('div');
+        // Create fresh wave
+        const wave = parentDoc.createElement('div');
         wave.id = 'tsunami-wave-overlay';
         wave.style.position = 'fixed';
         wave.style.top = '0';
@@ -100,8 +112,9 @@ components.html(f"""
         wave.style.boxShadow = '20px 0 50px rgba(0,0,0,0.5)';
         wave.style.animation = 'tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
 
-        if (!doc.getElementById('tsunami-keyframes')) {{
-            const style = doc.createElement('style');
+        // Inject keyframes if missing
+        if (!parentDoc.getElementById('tsunami-keyframes')) {{
+            const style = parentDoc.createElement('style');
             style.id = 'tsunami-keyframes';
             style.innerHTML = `
                 @keyframes tsunamiSweep {{
@@ -110,13 +123,17 @@ components.html(f"""
                     100% {{ transform: translateX(270vw); opacity: 0; }}
                 }}
             `;
-            doc.head.appendChild(style);
+            parentDoc.head.appendChild(style);
         }}
 
-        doc.body.appendChild(wave);
+        // Add wave to screen
+        parentDoc.body.appendChild(wave);
 
+        // Clean up wave after animation completes
         setTimeout(() => {{
-            if (wave) wave.remove();
+            if (wave && wave.parentNode) {{
+                wave.parentNode.removeChild(wave);
+            }}
         }}, 1300);
     </script>
 """, height=0, width=0)
