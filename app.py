@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
+import uuid
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
@@ -19,16 +20,16 @@ sections = [
     "8. Summary & Key Takeaways 📌"
 ]
 
-# --- BULLETPROOF STATE MANAGEMENT & NAVIGATION ---
+# --- STATE MANAGEMENT & NAVIGATION ---
 if "slide_index" not in st.session_state:
     st.session_state.slide_index = 0
-if "anim_counter" not in st.session_state:
-    st.session_state.anim_counter = 0
+if "trigger_transition" not in st.session_state:
+    st.session_state.trigger_transition = False
 
 def change_slide(new_index):
     if 0 <= new_index < len(sections) and new_index != st.session_state.slide_index:
         st.session_state.slide_index = new_index
-        st.session_state.anim_counter += 1 # Forces new animation and scroll lock
+        st.session_state.trigger_transition = True # Flag to run the wave and scroll
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -46,7 +47,6 @@ st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/
 st.sidebar.title("Navigation")
 st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
 
-# Sidebar radio selector synchronized with session state
 st.sidebar.radio(
     "Go to slide:", 
     sections, 
@@ -60,70 +60,68 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-
-# --- 1. AGGRESSIVE SCROLL LOCK ---
-# Streamlit natively tries to yank the page down to where the button was clicked.
-# This script pins the scroll position to the top aggressively for 1.5 seconds to overpower it.
-components.html(f"""
-    <div id="scroll-lock-{st.session_state.anim_counter}"></div>
-    <script>
-        const parent = window.parent;
-        const doc = parent.document;
-        
-        function lockToTop() {{
-            parent.scrollTo(0, 0);
-            doc.documentElement.scrollTop = 0;
-            doc.body.scrollTop = 0;
-            const containers = doc.querySelectorAll('.stAppViewContainer, .main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"]');
-            containers.forEach(container => {{
-                container.scrollTop = 0;
-            }});
-        }}
-        
-        // Pin to top every 15ms for a total of 1.5 seconds while the Tsunami animates
-        let start = Date.now();
-        let scrollLockInterval = setInterval(function() {{
-            lockToTop();
-            if (Date.now() - start > 1500) {{
-                clearInterval(scrollLockInterval);
-            }}
-        }}, 15);
-    </script>
-""", height=0, width=0)
-
-# --- 2. PURE CSS TSUNAMI WAVE & STYLING ---
-# Dynamic CSS @keyframes guarantees the browser treats it as a fresh animation every time
-st.markdown(f"""
-    <style>
-    /* TSUNAMI WAVE ANIMATION */
-    @keyframes sweep_{st.session_state.anim_counter} {{
-        0% {{ transform: translateX(0); opacity: 1; }}
-        80% {{ opacity: 1; }}
-        100% {{ transform: translateX(270vw); opacity: 0; display: none; }}
-    }}
+# --- TSUNAMI WAVE & SCROLL TO TOP TRIGGER ---
+if st.session_state.trigger_transition:
+    # Generate a unique ID so the browser is forced to play the animation every time
+    anim_id = str(uuid.uuid4())[:8]
     
-    .wave-anim-{st.session_state.anim_counter} {{
-        position: fixed;
-        top: 0;
-        left: -150vw;
-        width: 120vw;
-        height: 100vh;
-        background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
-        z-index: 9999999;
-        pointer-events: none; /* Allows you to click through it */
-        border-top-right-radius: 50% 100%;
-        border-bottom-right-radius: 50% 100%;
-        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
-        animation: sweep_{st.session_state.anim_counter} 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }}
+    # 1. PURE CSS WAVE ANIMATION
+    st.markdown(f"""
+        <style>
+        @keyframes sweep-{anim_id} {{
+            0% {{ transform: translateX(0); opacity: 1; }}
+            80% {{ opacity: 1; }}
+            100% {{ transform: translateX(250vw); opacity: 0; display: none; }}
+        }}
+        .wave-{anim_id} {{
+            position: fixed;
+            top: 0;
+            left: -120vw;
+            width: 120vw;
+            height: 100vh;
+            background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
+            z-index: 999999;
+            pointer-events: none;
+            border-top-right-radius: 50% 100%;
+            border-bottom-right-radius: 50% 100%;
+            animation: sweep-{anim_id} 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }}
+        </style>
+        <div class="wave-{anim_id}"></div>
+    """, unsafe_allow_html=True)
+    
+    # 2. SMOOTH JAVASCRIPT SCROLL & BLUR (Fixes rubber-banding)
+    components.html("""
+        <script>
+            const doc = window.parent.document;
+            
+            // This is the magic fix: Blurring the button stops Streamlit from pulling the screen back down!
+            if (doc.activeElement) {
+                doc.activeElement.blur();
+            }
+            
+            // Scroll safely to top
+            const mainContainer = doc.querySelector('.main') || doc.querySelector('[data-testid="stAppViewContainer"]');
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
+            }
+            window.parent.scrollTo(0, 0);
+        </script>
+    """, height=0, width=0)
+    
+    # Reset flag so it doesn't trigger when taking quizzes, etc.
+    st.session_state.trigger_transition = False
 
+# --- CUSTOM CSS ---
+st.markdown("""
+    <style>
     /* Safely apply STXingkai font ONLY to text elements */
-    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {{
+    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {
         font-family: 'STXingkai', cursive, sans-serif !important;
-    }}
+    }
 
     /* Blue Bubble Style for Page Headings */
-    .main-title {{
+    .main-title {
         font-size: 42px; 
         font-weight: 800; 
         color: #ffffff !important; 
@@ -135,56 +133,56 @@ st.markdown(f"""
         box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
         border: 3px solid #BFDBFE;
         display: block;
-    }}
+    }
     
-    .sub-title {{
+    .sub-title {
         font-size: 24px; 
         color: #1E40AF; 
         margin-bottom: 30px; 
         text-align: center;
         font-weight: bold;
-    }}
+    }
     
-    .card {{
+    .card {
         background-color: #ffffff; 
         padding: 25px; 
         border-radius: 12px; 
         box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
         border-top: 5px solid #1E3A8A; 
         margin-bottom: 20px;
-    }}
+    }
     
-    .quote-box {{
+    .quote-box {
         background-color: #F3F4F6; 
         padding: 20px; 
         border-left: 5px solid #F59E0B; 
         border-radius: 5px; 
         font-style: italic; 
         color: #374151;
-    }}
+    }
     
-    h3 {{
+    h3 {
         color: #1E40AF;
-    }}
+    }
     
     /* Pin the popover containers behind the left sidebar with stealth hover behavior */
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {{
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {
         position: fixed !important;
         left: 10px !important;
         z-index: 9999 !important;
         opacity: 0.3;
         transition: opacity 0.3s ease;
-    }}
+    }
     
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {{
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {
         opacity: 1;
-    }}
+    }
 
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) {{ top: 80px !important; }}
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) {{ top: 110px !important; }}
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) {{ top: 140px !important; }}
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) { top: 80px !important; }
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) { top: 110px !important; }
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) { top: 140px !important; }
 
-    div[data-testid="stPopover"] button {{
+    div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
@@ -193,16 +191,13 @@ st.markdown(f"""
         border-radius: 0px !important; 
         background-color: #9CA3AF !important; 
         border: none !important;
-    }}
+    }
     
     div[data-testid="stPopover"] button p, 
-    div[data-testid="stPopover"] button div {{
+    div[data-testid="stPopover"] button div {
         display: none !important;
-    }}
+    }
     </style>
-    
-    <!-- Render the Wave element in the DOM dynamically -->
-    <div class="wave-anim-{st.session_state.anim_counter}"></div>
 """, unsafe_allow_html=True)
 
 
