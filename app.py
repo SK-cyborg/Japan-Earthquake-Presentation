@@ -26,9 +26,9 @@ if "anim_counter" not in st.session_state:
     st.session_state.anim_counter = 0
 
 def change_slide(new_index):
-    if 0 <= new_index < len(sections):
+    if 0 <= new_index < len(sections) and new_index != st.session_state.slide_index:
         st.session_state.slide_index = new_index
-        st.session_state.anim_counter += 1
+        st.session_state.anim_counter += 1 # Forces new animation and scroll
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -39,9 +39,7 @@ def nav_prev():
 def on_sidebar_change():
     selected_name = st.session_state.sidebar_radio
     new_idx = sections.index(selected_name)
-    if new_idx != st.session_state.slide_index:
-        st.session_state.slide_index = new_idx
-        st.session_state.anim_counter += 1
+    change_slide(new_idx)
 
 # --- SIDEBAR NAVIGATION ---
 st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
@@ -62,92 +60,63 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- TSUNAMI WAVE TRANSITION & ABSOLUTE SCROLL TO TOP ---
-# By passing the counter into the HTML string, it forces Streamlit to re-execute this block every click
+# --- 1. FORCE SCROLL TO TOP (Executes on every render) ---
 components.html(f"""
-    <div id="trigger-{st.session_state.anim_counter}"></div>
+    <div id="scroll-trigger-{st.session_state.anim_counter}"></div>
     <script>
-        const parentDoc = window.parent.document;
-        const parentWin = window.parent;
-        
-        // 1. BULLETPROOF SCROLL TO TOP
-        function forceScrollTop() {{
-            parentWin.scrollTo(0, 0);
-            parentDoc.documentElement.scrollTop = 0;
-            parentDoc.body.scrollTop = 0;
+        // Use a short timeout to ensure Streamlit has finished rendering the new slide
+        setTimeout(function() {{
+            const parent = window.parent;
+            const doc = parent.document;
             
-            // Target all possible Streamlit scrollable containers
-            const scrollContainers = parentDoc.querySelectorAll('.main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"], section.main');
-            scrollContainers.forEach(el => {{
-                el.scrollTop = 0;
+            // Target Streamlit's exact internal scrollable containers
+            const containers = doc.querySelectorAll('.stAppViewContainer, .main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"]');
+            
+            containers.forEach(container => {{
+                container.scrollTop = 0;
             }});
-        }}
-        
-        // Fire immediately, and fire again slightly delayed to override Streamlit's native scroll-memory
-        forceScrollTop();
-        setTimeout(forceScrollTop, 50);
-        setTimeout(forceScrollTop, 150);
-        setTimeout(forceScrollTop, 300);
-
-        // 2. TSUNAMI ANIMATION OVERLAY
-        // Remove existing wave if it got stuck
-        let oldWave = parentDoc.getElementById('tsunami-wave-overlay');
-        if (oldWave) {{
-            oldWave.remove();
-        }}
-
-        // Create fresh wave
-        const wave = parentDoc.createElement('div');
-        wave.id = 'tsunami-wave-overlay';
-        wave.style.position = 'fixed';
-        wave.style.top = '0';
-        wave.style.left = '-150vw';
-        wave.style.width = '120vw';
-        wave.style.height = '100vh';
-        wave.style.background = 'linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%)';
-        wave.style.zIndex = '9999999';
-        wave.style.pointerEvents = 'none';
-        wave.style.borderTopRightRadius = '50% 100%';
-        wave.style.borderBottomRightRadius = '50% 100%';
-        wave.style.boxShadow = '20px 0 50px rgba(0,0,0,0.5)';
-        wave.style.animation = 'tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
-
-        // Inject keyframes if missing
-        if (!parentDoc.getElementById('tsunami-keyframes')) {{
-            const style = parentDoc.createElement('style');
-            style.id = 'tsunami-keyframes';
-            style.innerHTML = `
-                @keyframes tsunamiSweep {{
-                    0% {{ transform: translateX(0); opacity: 1; }}
-                    80% {{ opacity: 1; }}
-                    100% {{ transform: translateX(270vw); opacity: 0; }}
-                }}
-            `;
-            parentDoc.head.appendChild(style);
-        }}
-
-        // Add wave to screen
-        parentDoc.body.appendChild(wave);
-
-        // Clean up wave after animation completes
-        setTimeout(() => {{
-            if (wave && wave.parentNode) {{
-                wave.parentNode.removeChild(wave);
-            }}
-        }}, 1300);
+            
+            parent.scrollTo(0, 0);
+            doc.documentElement.scrollTop = 0;
+            doc.body.scrollTop = 0;
+        }}, 100);
     </script>
 """, height=0, width=0)
 
-# --- CUSTOM CSS ---
-st.markdown("""
+# --- 2. PURE CSS TSUNAMI WAVE & STYLING ---
+# By injecting the anim_counter directly into the CSS class and @keyframes name, 
+# the browser is forced to treat it as a brand-new element/animation on every single click.
+st.markdown(f"""
     <style>
+    /* TSUNAMI WAVE ANIMATION */
+    @keyframes sweep_{st.session_state.anim_counter} {{
+        0% {{ transform: translateX(0); opacity: 1; }}
+        80% {{ opacity: 1; }}
+        100% {{ transform: translateX(270vw); opacity: 0; display: none; }}
+    }}
+    
+    .wave-anim-{st.session_state.anim_counter} {{
+        position: fixed;
+        top: 0;
+        left: -150vw;
+        width: 120vw;
+        height: 100vh;
+        background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
+        z-index: 9999999;
+        pointer-events: none; /* Allows you to click through it */
+        border-top-right-radius: 50% 100%;
+        border-bottom-right-radius: 50% 100%;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+        animation: sweep_{st.session_state.anim_counter} 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }}
+
     /* Safely apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
-    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {
+    h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {{
         font-family: 'STXingkai', cursive, sans-serif !important;
-    }
+    }}
 
     /* Blue Bubble Style for Page Headings */
-    .main-title {
+    .main-title {{
         font-size: 42px; 
         font-weight: 800; 
         color: #ffffff !important; 
@@ -159,58 +128,58 @@ st.markdown("""
         box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
         border: 3px solid #BFDBFE;
         display: block;
-    }
+    }}
     
-    .sub-title {
+    .sub-title {{
         font-size: 24px; 
         color: #1E40AF; 
         margin-bottom: 30px; 
         text-align: center;
         font-weight: bold;
-    }
+    }}
     
-    .card {
+    .card {{
         background-color: #ffffff; 
         padding: 25px; 
         border-radius: 12px; 
         box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
         border-top: 5px solid #1E3A8A; 
         margin-bottom: 20px;
-    }
+    }}
     
-    .quote-box {
+    .quote-box {{
         background-color: #F3F4F6; 
         padding: 20px; 
         border-left: 5px solid #F59E0B; 
         border-radius: 5px; 
         font-style: italic; 
         color: #374151;
-    }
+    }}
     
-    h3 {
+    h3 {{
         color: #1E40AF;
-    }
+    }}
     
     /* Pin the popover containers behind the left sidebar with stealth hover behavior */
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]) {{
         position: fixed !important;
         left: 10px !important;
         z-index: 9999 !important;
         opacity: 0.3;
         transition: opacity 0.3s ease;
-    }
+    }}
     
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):hover {{
         opacity: 1;
-    }
+    }}
 
     /* Distinct vertical stacking for each sequential popover container */
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) { top: 80px !important; }
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) { top: 110px !important; }
-    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) { top: 140px !important; }
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) {{ top: 80px !important; }}
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) {{ top: 110px !important; }}
+    div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) {{ top: 140px !important; }}
 
     /* Target the button itself inside the popover to make it an exact 20x20 square */
-    div[data-testid="stPopover"] button {
+    div[data-testid="stPopover"] button {{
         width: 20px !important;
         height: 20px !important;
         min-width: 20px !important;
@@ -219,13 +188,16 @@ st.markdown("""
         border-radius: 0px !important; 
         background-color: #9CA3AF !important; 
         border: none !important;
-    }
+    }}
     
     div[data-testid="stPopover"] button p, 
-    div[data-testid="stPopover"] button div {
+    div[data-testid="stPopover"] button div {{
         display: none !important;
-    }
+    }}
     </style>
+    
+    <!-- Render the Wave element in the DOM -->
+    <div class="wave-anim-{st.session_state.anim_counter}"></div>
 """, unsafe_allow_html=True)
 
 # --- SLIDE 1: OVERVIEW & MAP ---
