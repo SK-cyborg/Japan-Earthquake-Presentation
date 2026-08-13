@@ -88,17 +88,18 @@ st.markdown(f"""
     <div class="wave-{current_counter}"></div>
 """, unsafe_allow_html=True)
 
-# 2. JavaScript Scroll Lock (Unique 'key' forces Streamlit to execute the script every time)
-components.html("""
+# 2. JavaScript Scroll Lock (Injecting the counter into the HTML string forces it to re-run without crashing)
+components.html(f"""
+    <div id="scroll-trigger-{current_counter}"></div>
     <script>
         const doc = window.parent.document;
         
         // Remove focus from the clicked button immediately
-        if (doc.activeElement) {
+        if (doc.activeElement) {{
             doc.activeElement.blur();
-        }
+        }}
         
-        function forceTop() {
+        function forceTop() {{
             const containers = [
                 doc.documentElement,
                 doc.body,
@@ -107,24 +108,24 @@ components.html("""
                 doc.querySelector('[data-testid="stMainBlockContainer"]')
             ];
             
-            containers.forEach(el => {
+            containers.forEach(el => {{
                 if (el) el.scrollTop = 0;
-            });
+            }});
             window.parent.scrollTo(0, 0);
-        }
+        }}
         
         // Fire repeatedly for 2 full seconds. 
         // This easily covers the time it takes for heavy Plotly charts to load.
         let ticks = 0;
-        const scrollLock = setInterval(() => {
+        const scrollLock = setInterval(() => {{
             forceTop();
             ticks++;
-            if (ticks > 100) { // 100 ticks * 20ms = 2000ms (2 seconds)
+            if (ticks > 100) {{ // 100 ticks * 20ms = 2000ms (2 seconds)
                 clearInterval(scrollLock);
-            }
-        }, 20);
+            }}
+        }}, 20);
     </script>
-""", height=0, width=0, key=f"scroll_fix_{current_counter}")
+""", height=0, width=0)
 
 # --- CUSTOM CSS ---
 st.markdown("""
