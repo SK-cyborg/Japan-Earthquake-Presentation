@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
-import uuid
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
@@ -23,13 +22,13 @@ sections = [
 # --- STATE MANAGEMENT & NAVIGATION ---
 if "slide_index" not in st.session_state:
     st.session_state.slide_index = 0
-if "trigger_transition" not in st.session_state:
-    st.session_state.trigger_transition = False
+if "slide_counter" not in st.session_state:
+    st.session_state.slide_counter = 0
 
 def change_slide(new_index):
     if 0 <= new_index < len(sections) and new_index != st.session_state.slide_index:
         st.session_state.slide_index = new_index
-        st.session_state.trigger_transition = True
+        st.session_state.slide_counter += 1  # This counter is the magic key
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -60,75 +59,72 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- TSUNAMI WAVE & AGGRESSIVE SCROLL LOCK ---
-if st.session_state.trigger_transition:
-    anim_id = str(uuid.uuid4())[:8]
-    
-    # 1. PURE CSS WAVE ANIMATION
-    st.markdown(f"""
-        <style>
-        @keyframes sweep-{anim_id} {{
-            0% {{ transform: translateX(0); opacity: 1; }}
-            80% {{ opacity: 1; }}
-            100% {{ transform: translateX(250vw); opacity: 0; display: none; }}
-        }}
-        .wave-{anim_id} {{
-            position: fixed;
-            top: 0;
-            left: -120vw;
-            width: 120vw;
-            height: 100vh;
-            background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
-            z-index: 999999;
-            pointer-events: none;
-            border-top-right-radius: 50% 100%;
-            border-bottom-right-radius: 50% 100%;
-            animation: sweep-{anim_id} 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }}
-        </style>
-        <div class="wave-{anim_id}"></div>
-    """, unsafe_allow_html=True)
-    
-    # 2. AGGRESSIVE SCROLL LOCK FIX (With dynamic ID injected so Streamlit NEVER caches it)
-    components.html(f"""
-        <script>
-            // Unique execution ID: {anim_id}
-            const doc = window.parent.document;
+# --- TSUNAMI WAVE & BULLETPROOF SCROLL LOCK ---
+# We use slide_counter to guarantee the CSS and JS are completely rebuilt every click
+current_counter = st.session_state.slide_counter
+
+# 1. CSS Animation (Unique class forces replay)
+st.markdown(f"""
+    <style>
+    @keyframes sweep-{current_counter} {{
+        0% {{ transform: translateX(0); opacity: 1; }}
+        80% {{ opacity: 1; }}
+        100% {{ transform: translateX(250vw); opacity: 0; display: none; }}
+    }}
+    .wave-{current_counter} {{
+        position: fixed;
+        top: 0;
+        left: -120vw;
+        width: 120vw;
+        height: 100vh;
+        background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
+        z-index: 999999;
+        pointer-events: none;
+        border-top-right-radius: 50% 100%;
+        border-bottom-right-radius: 50% 100%;
+        animation: sweep-{current_counter} 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }}
+    </style>
+    <div class="wave-{current_counter}"></div>
+""", unsafe_allow_html=True)
+
+# 2. JavaScript Scroll Lock (Unique 'key' forces Streamlit to execute the script every time)
+components.html("""
+    <script>
+        const doc = window.parent.document;
+        
+        // Remove focus from the clicked button immediately
+        if (doc.activeElement) {
+            doc.activeElement.blur();
+        }
+        
+        function forceTop() {
+            const containers = [
+                doc.documentElement,
+                doc.body,
+                doc.querySelector('.main'),
+                doc.querySelector('[data-testid="stAppViewContainer"]'),
+                doc.querySelector('[data-testid="stMainBlockContainer"]')
+            ];
             
-            // Unfocus the button so Streamlit stops trying to snap back to it
-            if (doc.activeElement) {{
-                doc.activeElement.blur();
-            }}
-            
-            // The ultimate function to force the view to the top
-            function forceTop() {{
-                const containers = [
-                    doc.documentElement,
-                    doc.body,
-                    doc.querySelector('.main'),
-                    doc.querySelector('[data-testid="stAppViewContainer"]'),
-                    doc.querySelector('[data-testid="stMainBlockContainer"]')
-                ];
-                
-                containers.forEach(el => {{
-                    if (el) el.scrollTop = 0;
-                }});
-                window.parent.scrollTo(0, 0);
-            }}
-            
-            // Pin the screen to the top aggressively for 1.2 seconds 
-            let ticks = 0;
-            const scrollLock = setInterval(() => {{
-                forceTop();
-                ticks++;
-                if (ticks > 60) {{ // 60 ticks * 20ms = 1200ms (1.2 seconds)
-                    clearInterval(scrollLock);
-                }}
-            }}, 20);
-        </script>
-    """, height=0, width=0)
-    
-    st.session_state.trigger_transition = False
+            containers.forEach(el => {
+                if (el) el.scrollTop = 0;
+            });
+            window.parent.scrollTo(0, 0);
+        }
+        
+        // Fire repeatedly for 2 full seconds. 
+        // This easily covers the time it takes for heavy Plotly charts to load.
+        let ticks = 0;
+        const scrollLock = setInterval(() => {
+            forceTop();
+            ticks++;
+            if (ticks > 100) { // 100 ticks * 20ms = 2000ms (2 seconds)
+                clearInterval(scrollLock);
+            }
+        }, 20);
+    </script>
+""", height=0, width=0, key=f"scroll_fix_{current_counter}")
 
 # --- CUSTOM CSS ---
 st.markdown("""
