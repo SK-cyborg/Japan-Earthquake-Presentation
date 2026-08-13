@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit.components.v1 as components
+import uuid
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="2011 Japan Earthquake Presentation", page_icon="🇯🇵", layout="wide")
@@ -19,16 +20,16 @@ sections = [
     "8. Summary & Key Takeaways 📌"
 ]
 
-# --- BULLETPROOF STATE MANAGEMENT & NAVIGATION ---
+# --- STATE MANAGEMENT & NAVIGATION ---
 if "slide_index" not in st.session_state:
     st.session_state.slide_index = 0
-if "anim_counter" not in st.session_state:
-    st.session_state.anim_counter = 0
+if "trigger_transition" not in st.session_state:
+    st.session_state.trigger_transition = False
 
 def change_slide(new_index):
-    if 0 <= new_index < len(sections):
+    if 0 <= new_index < len(sections) and new_index != st.session_state.slide_index:
         st.session_state.slide_index = new_index
-        st.session_state.anim_counter += 1
+        st.session_state.trigger_transition = True
 
 def nav_next():
     change_slide(st.session_state.slide_index + 1)
@@ -39,16 +40,13 @@ def nav_prev():
 def on_sidebar_change():
     selected_name = st.session_state.sidebar_radio
     new_idx = sections.index(selected_name)
-    if new_idx != st.session_state.slide_index:
-        st.session_state.slide_index = new_idx
-        st.session_state.anim_counter += 1
+    change_slide(new_idx)
 
 # --- SIDEBAR NAVIGATION ---
 st.sidebar.image("https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/jp.svg", width=100)
 st.sidebar.title("Navigation")
 st.sidebar.markdown("Explore the 2011 Tohoku Earthquake & Tsunami Case Study.")
 
-# Sidebar radio selector synchronized with session state
 st.sidebar.radio(
     "Go to slide:", 
     sections, 
@@ -62,69 +60,80 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- TSUNAMI WAVE TRANSITION & ABSOLUTE SCROLL TO TOP ---
-components.html(f"""
-    <div id="trigger-{st.session_state.anim_counter}"></div>
-    <script>
-        const doc = window.parent.document;
-        
-        // 1. Force absolute scroll to top on every single container and the main window
-        doc.defaultView.scrollTo(0, 0);
-        doc.documentElement.scrollTop = 0;
-        doc.body.scrollTop = 0;
-        
-        const containers = doc.querySelectorAll('.main, [data-testid="stAppViewContainer"], section.main, div[data-testid="stVerticalBlock"]');
-        containers.forEach(el => {{
-            el.scrollTop = 0;
-        }});
-
-        // 2. Remove existing wave overlay if present
-        const oldWave = doc.getElementById('tsunami-wave-overlay');
-        if (oldWave) {{
-            oldWave.remove();
+# --- TSUNAMI WAVE & AGGRESSIVE SCROLL LOCK ---
+if st.session_state.trigger_transition:
+    anim_id = str(uuid.uuid4())[:8]
+    
+    # 1. PURE CSS WAVE ANIMATION
+    st.markdown(f"""
+        <style>
+        @keyframes sweep-{anim_id} {{
+            0% {{ transform: translateX(0); opacity: 1; }}
+            80% {{ opacity: 1; }}
+            100% {{ transform: translateX(250vw); opacity: 0; display: none; }}
         }}
-
-        // 3. Create and inject fresh tsunami wave element
-        const wave = doc.createElement('div');
-        wave.id = 'tsunami-wave-overlay';
-        wave.style.position = 'fixed';
-        wave.style.top = '0';
-        wave.style.left = '-150vw';
-        wave.style.width = '120vw';
-        wave.style.height = '100vh';
-        wave.style.background = 'linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%)';
-        wave.style.zIndex = '9999999';
-        wave.style.pointerEvents = 'none';
-        wave.style.borderTopRightRadius = '50% 100%';
-        wave.style.borderBottomRightRadius = '50% 100%';
-        wave.style.boxShadow = '20px 0 50px rgba(0,0,0,0.5)';
-        wave.style.animation = 'tsunamiSweep 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
-
-        if (!doc.getElementById('tsunami-keyframes')) {{
-            const style = doc.createElement('style');
-            style.id = 'tsunami-keyframes';
-            style.innerHTML = `
-                @keyframes tsunamiSweep {{
-                    0% {{ transform: translateX(0); opacity: 1; }}
-                    80% {{ opacity: 1; }}
-                    100% {{ transform: translateX(270vw); opacity: 0; }}
-                }}
-            `;
-            doc.head.appendChild(style);
+        .wave-{anim_id} {{
+            position: fixed;
+            top: 0;
+            left: -120vw;
+            width: 120vw;
+            height: 100vh;
+            background: linear-gradient(90deg, transparent 0%, #1E3A8A 30%, #3B82F6 70%, #93C5FD 100%);
+            z-index: 999999;
+            pointer-events: none;
+            border-top-right-radius: 50% 100%;
+            border-bottom-right-radius: 50% 100%;
+            animation: sweep-{anim_id} 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }}
-
-        doc.body.appendChild(wave);
-
-        setTimeout(() => {{
-            if (wave) wave.remove();
-        }}, 1300);
-    </script>
-""", height=0, width=0)
+        </style>
+        <div class="wave-{anim_id}"></div>
+    """, unsafe_allow_html=True)
+    
+    # 2. AGGRESSIVE SCROLL LOCK FIX
+    components.html("""
+        <script>
+            const doc = window.parent.document;
+            
+            // Unfocus the button so Streamlit stops trying to snap back to it
+            if (doc.activeElement) {
+                doc.activeElement.blur();
+            }
+            
+            // The ultimate function to force the view to the top
+            function forceTop() {
+                const containers = [
+                    doc.documentElement,
+                    doc.body,
+                    doc.querySelector('.main'),
+                    doc.querySelector('[data-testid="stAppViewContainer"]'),
+                    doc.querySelector('[data-testid="stMainBlockContainer"]')
+                ];
+                
+                containers.forEach(el => {
+                    if (el) el.scrollTop = 0;
+                });
+                window.parent.scrollTo(0, 0);
+            }
+            
+            // Pin the screen to the top aggressively for 1.2 seconds 
+            // This guarantees that even if a heavy graph loads late, it can't drag you down.
+            let ticks = 0;
+            const scrollLock = setInterval(() => {
+                forceTop();
+                ticks++;
+                if (ticks > 60) { // 60 ticks * 20ms = 1200ms (1.2 seconds)
+                    clearInterval(scrollLock);
+                }
+            }, 20);
+        </script>
+    """, height=0, width=0)
+    
+    st.session_state.trigger_transition = False
 
 # --- CUSTOM CSS ---
 st.markdown("""
     <style>
-    /* Safely apply STXingkai font ONLY to text elements, protecting Streamlit's UI icons */
+    /* Safely apply STXingkai font ONLY to text elements */
     h1, h2, h3, h4, h5, h6, p, li, label, .main-title, .sub-title, .card, .quote-box {
         font-family: 'STXingkai', cursive, sans-serif !important;
     }
@@ -187,12 +196,10 @@ st.markdown("""
         opacity: 1;
     }
 
-    /* Distinct vertical stacking for each sequential popover container */
     div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(1) { top: 80px !important; }
     div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(2) { top: 110px !important; }
     div[data-testid="stElementContainer"]:has(div[data-testid="stPopover"]):nth-of-type(3) { top: 140px !important; }
 
-    /* Target the button itself inside the popover to make it an exact 20x20 square */
     div[data-testid="stPopover"] button {
         width: 20px !important;
         height: 20px !important;
@@ -210,6 +217,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 # --- SLIDE 1: OVERVIEW & MAP ---
 if selection == "1. Overview & Map 🌍":
@@ -514,7 +522,6 @@ with col_next:
 
 # --- EASTER EGG POPOVERS (HIDDEN BEHIND LEFT SIDEBAR) ---
 
-# 1. TOP POPOVER
 egg_top = st.popover("")
 with egg_top:
     st.write("Authorized Access Only")
@@ -522,17 +529,13 @@ with egg_top:
     if code_top == "100%":
         st.success("Access Granted.")
         st.markdown("<h4 style='text-align:center;'>Hitler's Art School Application (1907)</h4>", unsafe_allow_html=True)
-        df_art = pd.DataFrame({
-            "Decision": ["Rejected", "Also Rejected, but in German", "Told to try Architecture instead"],
-            "Percent": [70, 29, 1]
-        })
+        df_art = pd.DataFrame({"Decision": ["Rejected", "Also Rejected, but in German", "Told to try Architecture instead"], "Percent": [70, 29, 1]})
         fig_art = px.pie(df_art, values="Percent", names="Decision", hole=0.3, color_discrete_sequence=px.colors.sequential.Reds_r)
         fig_art.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
         st.plotly_chart(fig_art, use_container_width=True)
     elif code_top:
         st.error("Invalid Code.")
 
-# 2. MIDDLE POPOVER
 egg_mid = st.popover("")
 with egg_mid:
     st.write("Authorized Access Only")
@@ -548,7 +551,6 @@ with egg_mid:
     elif code_mid:
         st.error("Invalid Code.")
 
-# 3. BOTTOM POPOVER
 egg_bot = st.popover("")
 with egg_bot:
     st.write("Authorized Access Only")
@@ -556,10 +558,7 @@ with egg_bot:
     if code_bot == "100%":
         st.success("Access Granted.")
         st.markdown("<h4 style='text-align:center;'>Success Rate: Invading Russia During Winter</h4>", unsafe_allow_html=True)
-        df_inv = pd.DataFrame({
-            "Dictator/General": ["Napoleon (1812)", "Hitler (1941)"],
-            "Success Rate (%)": [0, 0]
-        })
+        df_inv = pd.DataFrame({"Dictator/General": ["Napoleon (1812)", "Hitler (1941)"], "Success Rate (%)": [0, 0]})
         fig_inv = px.bar(df_inv, x="Dictator/General", y="Success Rate (%)", range_y=[0, 100], color="Dictator/General", color_discrete_sequence=["#3B82F6", "#EF4444"])
         fig_inv.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0), height=250)
         st.plotly_chart(fig_inv, use_container_width=True)
