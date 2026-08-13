@@ -59,11 +59,10 @@ selection = sections[st.session_state.slide_index]
 st.sidebar.markdown("---")
 st.sidebar.info("Built with Streamlit & Plotly\nData sourced from USGS, IAEA, JMA, and World Bank.")
 
-# --- TSUNAMI WAVE & BULLETPROOF SCROLL LOCK ---
-# We use slide_counter to guarantee the CSS and JS are completely rebuilt every click
+# --- TSUNAMI WAVE & NUCLEAR SCROLL LOCK ---
 current_counter = st.session_state.slide_counter
 
-# 1. CSS Animation (Unique class forces replay)
+# 1. CSS Animation
 st.markdown(f"""
     <style>
     @keyframes sweep-{current_counter} {{
@@ -88,42 +87,44 @@ st.markdown(f"""
     <div class="wave-{current_counter}"></div>
 """, unsafe_allow_html=True)
 
-# 2. JavaScript Scroll Lock (Injecting the counter into the HTML string forces it to re-run without crashing)
+# 2. The Nuclear Scroll Option
 components.html(f"""
     <div id="scroll-trigger-{current_counter}"></div>
     <script>
         const doc = window.parent.document;
         
-        // Remove focus from the clicked button immediately
+        // Defeat Streamlit's autofocus snap-back
         if (doc.activeElement) {{
             doc.activeElement.blur();
         }}
         
-        function forceTop() {{
-            const containers = [
-                doc.documentElement,
-                doc.body,
-                doc.querySelector('.main'),
-                doc.querySelector('[data-testid="stAppViewContainer"]'),
-                doc.querySelector('[data-testid="stMainBlockContainer"]')
-            ];
-            
-            containers.forEach(el => {{
-                if (el) el.scrollTop = 0;
-            }});
+        function forceAbsoluteTop() {{
+            // 1. Scroll the main browser window
             window.parent.scrollTo(0, 0);
+            
+            // 2. Target literally every possible structural container in Streamlit and force it to 0
+            const containers = doc.querySelectorAll('html, body, .main, section, .stAppViewContainer, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"]');
+            containers.forEach(el => {{
+                el.scrollTop = 0;
+            }});
+            
+            // 3. The Ultimate Anchor: Find the very top of the app and force it into view
+            const topHeader = doc.querySelector('header, .stApp');
+            if (topHeader) {{
+                topHeader.scrollIntoView({{ behavior: 'instant', block: 'start' }});
+            }}
         }}
         
-        // Fire repeatedly for 2 full seconds. 
-        // This easily covers the time it takes for heavy Plotly charts to load.
+        // Fire aggressively every 15 milliseconds for a full 2 seconds.
+        // This easily outlasts the Plotly charts trying to render and push the page down.
         let ticks = 0;
         const scrollLock = setInterval(() => {{
-            forceTop();
+            forceAbsoluteTop();
             ticks++;
-            if (ticks > 100) {{ // 100 ticks * 20ms = 2000ms (2 seconds)
+            if (ticks > 133) {{ // 133 ticks * 15ms = ~2000ms (2 seconds)
                 clearInterval(scrollLock);
             }}
-        }}, 20);
+        }}, 15);
     </script>
 """, height=0, width=0)
 
