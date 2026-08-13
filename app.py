@@ -89,18 +89,19 @@ if st.session_state.trigger_transition:
         <div class="wave-{anim_id}"></div>
     """, unsafe_allow_html=True)
     
-    # 2. AGGRESSIVE SCROLL LOCK FIX
-    components.html("""
+    # 2. AGGRESSIVE SCROLL LOCK FIX (With dynamic ID injected so Streamlit NEVER caches it)
+    components.html(f"""
         <script>
+            // Unique execution ID: {anim_id}
             const doc = window.parent.document;
             
             // Unfocus the button so Streamlit stops trying to snap back to it
-            if (doc.activeElement) {
+            if (doc.activeElement) {{
                 doc.activeElement.blur();
-            }
+            }}
             
             // The ultimate function to force the view to the top
-            function forceTop() {
+            function forceTop() {{
                 const containers = [
                     doc.documentElement,
                     doc.body,
@@ -109,22 +110,21 @@ if st.session_state.trigger_transition:
                     doc.querySelector('[data-testid="stMainBlockContainer"]')
                 ];
                 
-                containers.forEach(el => {
+                containers.forEach(el => {{
                     if (el) el.scrollTop = 0;
-                });
+                }});
                 window.parent.scrollTo(0, 0);
-            }
+            }}
             
             // Pin the screen to the top aggressively for 1.2 seconds 
-            // This guarantees that even if a heavy graph loads late, it can't drag you down.
             let ticks = 0;
-            const scrollLock = setInterval(() => {
+            const scrollLock = setInterval(() => {{
                 forceTop();
                 ticks++;
-                if (ticks > 60) { // 60 ticks * 20ms = 1200ms (1.2 seconds)
+                if (ticks > 60) {{ // 60 ticks * 20ms = 1200ms (1.2 seconds)
                     clearInterval(scrollLock);
-                }
-            }, 20);
+                }}
+            }}, 20);
         </script>
     """, height=0, width=0)
     
